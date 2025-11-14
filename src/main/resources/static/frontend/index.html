@@ -1,11 +1,123 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>FisioClin - Evolução de Pacientes</title>
+    <link rel="stylesheet" href="Assets/css/styles.css">
 </head>
 <body>
-    
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>FisioClin - Sistema de Evolução de Pacientes</h1>
+            <p>Acompanhe e registre a evolução dos pacientes de fisioterapia</p>
+        </header>
+
+        <!-- Mensagens -->
+        <div id="message" class="message"></div>
+
+        <!-- Loading -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Carregando...</p>
+        </div>
+
+        <!-- Busca de Paciente -->
+        <section class="search-section">
+            <h2>Buscar Paciente</h2>
+            <div class="search-form">
+                <div class="form-group" style="flex: 2;">
+                    <label for="patientSelect">Selecione o Paciente</label>
+                    <select id="patientSelect">
+                        <option value="">Carregando pacientes...</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 0; min-width: auto;">
+                    <label style="visibility: hidden;">Buscar</label>
+                    <button id="searchBtn" class="btn btn-primary">🔍 Buscar</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Informações do Paciente -->
+        <section id="patientInfo" class="patient-info">
+            <!-- Será preenchido dinamicamente -->
+        </section>
+
+        <!-- Formulário de Evolução -->
+        <section id="evolutionForm" class="evolution-form">
+            <h3>Registrar Nova Evolução</h3>
+            <form id="evolutionFormElement">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dataAtendi">Data do Atendimento *</label>
+                        <input type="date" id="dataAtendi" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="idProfissio">ID do Profissional *</label>
+                        <input type="number" id="idProfissio" placeholder="Ex: 1" required min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="idProced">ID do Procedimento *</label>
+                        <input type="number" id="idProced" placeholder="Ex: 1" required min="1">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="descrAtendi">Descrição da Evolução</label>
+                    <textarea 
+                        id="descrAtendi" 
+                        placeholder="Descreva a evolução do paciente, procedimentos realizados, observações importantes..."
+                        maxlength="250"
+                    ></textarea>
+                    <small style="color: var(--gray-text); display: block; margin-top: 5px;">
+                        Máximo de 250 caracteres
+                    </small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="cancelBtn" class="btn btn-secondary">❌ Cancelar</button>
+                    <button type="submit" class="btn btn-primary">💾 Registrar Evolução</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Timeline de Evolução -->
+        <section id="timelineSection" class="timeline-section">
+            <h3>Histórico de Atendimentos</h3>
+            
+            <!-- Filtros de Período -->
+            <div class="timeline-filters">
+                <div class="form-group">
+                    <label for="dataInicio">Data Início</label>
+                    <input type="date" id="dataInicio">
+                </div>
+                <div class="form-group">
+                    <label for="dataFim">Data Fim</label>
+                    <input type="date" id="dataFim">
+                </div>
+                <div class="form-group" style="flex: 0; min-width: auto;">
+                    <label style="visibility: hidden;">Filtrar</label>
+                    <button id="filterBtn" class="btn btn-primary">🔍 Filtrar</button>
+                </div>
+                <div class="form-group" style="flex: 0; min-width: auto;">
+                    <label style="visibility: hidden;">Limpar</label>
+                    <button id="clearFilterBtn" class="btn btn-secondary">🔄 Limpar Filtro</button>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div id="timeline" class="timeline">
+                <div class="empty-state">
+                    Selecione um paciente para visualizar o histórico
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Scripts -->
+    <script src="Assets/js/apiManager.js"></script>
+    <script src="Assets/js/indexManager.js"></script>
 </body>
 </html>
