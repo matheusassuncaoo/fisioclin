@@ -166,10 +166,12 @@ class EvolutionManager {
                     <div class="timeline-date">${this.formatDate(atendimento.dataAtendi)}</div>
                     <div class="timeline-actions">
                         <button class="btn btn-small btn-primary" onclick="evolutionManager.editEvolution(${atendimento.idAtendiFisio})">
-                            ✏️ Editar
+                            <i data-feather="edit-2"></i>
+                            Editar
                         </button>
                         <button class="btn btn-small btn-danger" onclick="evolutionManager.deleteEvolution(${atendimento.idAtendiFisio})">
-                            🗑️ Excluir
+                            <i data-feather="trash-2"></i>
+                            Excluir
                         </button>
                     </div>
                 </div>
@@ -177,12 +179,15 @@ class EvolutionManager {
                     ${atendimento.descrAtendi || '<em>Sem descrição</em>'}
                 </div>
                 <div class="timeline-meta">
-                    <span><strong>ID Atendimento:</strong> ${atendimento.idAtendiFisio}</span>
+                    <span><strong>ID:</strong> ${atendimento.idAtendiFisio}</span>
                     <span><strong>Profissional:</strong> ${atendimento.idProfissio}</span>
                     <span><strong>Procedimento:</strong> ${atendimento.idProced}</span>
                 </div>
             </div>
         `).join('');
+        
+        // Renderizar ícones Feather
+        feather.replace();
     }
 
     showSections() {
@@ -253,7 +258,9 @@ class EvolutionManager {
         document.getElementById('descrAtendi').value = atendimento.descrAtendi || '';
 
         // Mudar texto do botão
-        document.querySelector('#evolutionForm button[type="submit"]').innerHTML = '💾 Atualizar Evolução';
+        const submitBtn = document.querySelector('#evolutionForm button[type="submit"]');
+        submitBtn.innerHTML = '<i data-feather="edit"></i> Atualizar';
+        feather.replace();
         
         // Scroll para o formulário
         document.getElementById('evolutionForm').scrollIntoView({ behavior: 'smooth' });
@@ -332,7 +339,9 @@ class EvolutionManager {
     resetForm() {
         document.getElementById('evolutionFormElement').reset();
         this.editingAtendimento = null;
-        document.querySelector('#evolutionForm button[type="submit"]').innerHTML = '💾 Registrar Evolução';
+        const submitBtn = document.querySelector('#evolutionForm button[type="submit"]');
+        submitBtn.innerHTML = '<i data-feather="save"></i> Salvar';
+        feather.replace();
         
         // Definir data atual como padrão
         document.getElementById('dataAtendi').value = new Date().toISOString().split('T')[0];

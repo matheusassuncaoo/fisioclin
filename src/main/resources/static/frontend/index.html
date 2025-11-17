@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FisioClin - Evolução de Pacientes</title>
     <link rel="stylesheet" href="Assets/css/styles.css">
+    <script src="https://unpkg.com/feather-icons"></script>
 </head>
 <body>
     <div class="container">
         <!-- Header -->
         <header class="header">
-            <h1>FisioClin - Sistema de Evolução de Pacientes</h1>
-            <p>Acompanhe e registre a evolução dos pacientes de fisioterapia</p>
+            <h1>Evolução de Pacientes</h1>
+            <p>Gerenciamento de atendimentos fisioterapêuticos</p>
         </header>
 
         <!-- Mensagens -->
@@ -35,7 +36,10 @@
                 </div>
                 <div class="form-group" style="flex: 0; min-width: auto;">
                     <label style="visibility: hidden;">Buscar</label>
-                    <button id="searchBtn" class="btn btn-primary">🔍 Buscar</button>
+                    <button id="searchBtn" class="btn btn-primary">
+                        <i data-feather="search"></i>
+                        Buscar
+                    </button>
                 </div>
             </div>
         </section>
@@ -47,7 +51,7 @@
 
         <!-- Formulário de Evolução -->
         <section id="evolutionForm" class="evolution-form">
-            <h3>Registrar Nova Evolução</h3>
+            <h3>Nova Evolução</h3>
             <form id="evolutionFormElement">
                 <div class="form-row">
                     <div class="form-group">
@@ -77,15 +81,21 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="button" id="cancelBtn" class="btn btn-secondary">❌ Cancelar</button>
-                    <button type="submit" class="btn btn-primary">💾 Registrar Evolução</button>
+                    <button type="button" id="cancelBtn" class="btn btn-secondary">
+                        <i data-feather="x"></i>
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i data-feather="save"></i>
+                        Salvar
+                    </button>
                 </div>
             </form>
         </section>
 
         <!-- Timeline de Evolução -->
         <section id="timelineSection" class="timeline-section">
-            <h3>Histórico de Atendimentos</h3>
+            <h3>Histórico</h3>
             
             <!-- Filtros de Período -->
             <div class="timeline-filters">
@@ -99,11 +109,17 @@
                 </div>
                 <div class="form-group" style="flex: 0; min-width: auto;">
                     <label style="visibility: hidden;">Filtrar</label>
-                    <button id="filterBtn" class="btn btn-primary">🔍 Filtrar</button>
+                    <button id="filterBtn" class="btn btn-primary">
+                        <i data-feather="filter"></i>
+                        Filtrar
+                    </button>
                 </div>
                 <div class="form-group" style="flex: 0; min-width: auto;">
                     <label style="visibility: hidden;">Limpar</label>
-                    <button id="clearFilterBtn" class="btn btn-secondary">🔄 Limpar Filtro</button>
+                    <button id="clearFilterBtn" class="btn btn-secondary">
+                        <i data-feather="refresh-cw"></i>
+                        Limpar
+                    </button>
                 </div>
             </div>
 
@@ -119,5 +135,8 @@
     <!-- Scripts -->
     <script src="Assets/js/apiManager.js"></script>
     <script src="Assets/js/indexManager.js"></script>
+    <script>
+        feather.replace();
+    </script>
 </body>
 </html>
