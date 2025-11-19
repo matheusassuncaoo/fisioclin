@@ -31,16 +31,11 @@ public class Paciente {
     @Column(name = "RGPACIENTE", nullable = false, unique = true, length = 15)
     private String rgPaciente;
     
-    @Enumerated(EnumType.STRING)
-    @Column(name = "ESTDORGPAC")
-    private EstadoRg estdoRgPac;
+    @Size(max = 2, message = "Estado do RG deve ter 2 caracteres")
+    @Column(name = "ESTDORGPAC", length = 2)
+    private String estdoRgPac;
     
+    @Builder.Default
     @Column(name = "STATUSPAC", nullable = false)
     private Boolean statusPac = true;
-    
-    public enum EstadoRg {
-        AC, AL, AP, AM, BA, CE, DF, ES, GO, MA,
-        MT, MS, MG, PA, PB, PR, PE, PI, RJ, RN,
-        RS, RO, RR, SC, SP, SE, TO
-    }
 }
