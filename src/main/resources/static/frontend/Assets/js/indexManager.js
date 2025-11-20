@@ -1,100 +1,175 @@
 /**
- * Index Manager - Gerencia a lógica da aplicação de evolução de pacientes
+ * Evolution Manager - Gerenciamento Avançado de Evoluções Fisioterapêuticas
+ * Foco: Velocidade, Análise Visual e Comparação Inteligente
  */
 
 class EvolutionManager {
     constructor() {
         this.currentPatient = null;
+        this.currentPessoaFis = null;
         this.currentAtendimentos = [];
         this.editingAtendimento = null;
+        this.chart = null;
+        this.allPacientes = [];
         this.init();
     }
 
-    init() {
+    async init() {
+        await this.loadInitialData();
         this.setupEventListeners();
-        this.loadPacientes();
+        this.setupSOAPTabs();
+        this.setupQuickTags();
+    }
+
+    async loadInitialData() {
+        try {
+            this.allPacientes = await api.listarPacientesAtivos();
+            this.updateQuickStats();
+        } catch (error) {
+            console.error('Erro ao carregar dados iniciais:', error);
+        }
     }
 
     setupEventListeners() {
-        // Busca de paciente
-        document.getElementById('searchBtn').addEventListener('click', () => this.searchPatient());
-        document.getElementById('patientSelect').addEventListener('change', (e) => {
-            if (e.target.value) {
-                this.loadPatientData(e.target.value);
-            }
+        // Busca inteligente
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', () => this.handleSearch());
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.selectFirstResult();
         });
 
-        // Formulário de evolução
-        document.getElementById('evolutionForm').addEventListener('submit', (e) => {
+        document.getElementById('searchBtn').addEventListener('click', () => this.selectFirstResult());
+
+        // Formulário SOAP
+        document.getElementById('evolutionFormElement').addEventListener('submit', (e) => {
             e.preventDefault();
             this.saveEvolution();
         });
 
         document.getElementById('cancelBtn').addEventListener('click', () => this.cancelEvolution());
+        document.getElementById('copyLastBtn').addEventListener('click', () => this.copyLastSession());
 
-        // Filtros de período
-        document.getElementById('filterBtn').addEventListener('click', () => this.filterTimeline());
-        document.getElementById('clearFilterBtn').addEventListener('click', () => this.clearFilters());
+        // Timeline e filtros
+        document.getElementById('filterBtn').addEventListener('click', () => this.toggleFilterPanel());
+        document.getElementById('compareBtn').addEventListener('click', () => this.toggleCompareMode());
+        document.getElementById('applyFilterBtn').addEventListener('click', () => this.applyFilter());
+        document.getElementById('clearFilterBtn').addEventListener('click', () => this.clearFilter());
+        document.getElementById('runCompareBtn')?.addEventListener('click', () => this.runComparison());
 
-        // Enter no select de paciente
-        document.getElementById('patientSelect').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const selectedId = e.target.value;
-                if (selectedId) {
-                    this.loadPatientData(selectedId);
-                }
+        // Fechar dropdown ao clicar fora
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-input-wrapper')) {
+                document.getElementById('searchResults').classList.add('hidden');
             }
         });
     }
 
-    async loadPacientes() {
-        try {
-            const pacientes = await api.listarPacientesAtivos();
-            this.populatePacienteSelect(pacientes);
-        } catch (error) {
-            this.showMessage('Erro ao carregar lista de pacientes', 'error');
-            console.error(error);
-        }
-    }
-
-    populatePacienteSelect(pacientes) {
-        const select = document.getElementById('patientSelect');
-        select.innerHTML = '<option value="">Selecione um paciente...</option>';
-        
-        pacientes.forEach(paciente => {
-            const option = document.createElement('option');
-            option.value = paciente.idPaciente;
-            option.textContent = `${paciente.idPaciente} - RG: ${paciente.rgPaciente}`;
-            select.appendChild(option);
+    setupSOAPTabs() {
+        const tabs = document.querySelectorAll('.soap-tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                // Atualizar tabs
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Atualizar painéis
+                document.querySelectorAll('.soap-panel').forEach(p => p.classList.remove('active'));
+                document.querySelector(`[data-panel="${targetTab}"]`).classList.add('active');
+            });
         });
     }
 
-    async searchPatient() {
-        const patientId = document.getElementById('patientSelect').value;
-        
-        if (!patientId) {
-            this.showMessage('Por favor, selecione um paciente', 'error');
+    setupQuickTags() {
+        document.querySelectorAll('.tag-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const tag = chip.dataset.tag;
+                const panel = chip.closest('.soap-panel');
+                const textarea = panel.querySelector('textarea');
+                
+                chip.classList.toggle('selected');
+                
+                // Adicionar/remover tag do texto
+                if (chip.classList.contains('selected')) {
+                    const currentText = textarea.value;
+                    textarea.value = currentText ? `${currentText}; ${tag}` : tag;
+                } else {
+                    textarea.value = textarea.value.replace(new RegExp(`(; )?${tag}`, 'g'), '').trim();
+                }
+            });
+        });
+    }
+
+    // ========== BUSCA INTELIGENTE ==========
+    handleSearch() {
+        const query = document.getElementById('searchInput').value.trim().toLowerCase();
+        const resultsDiv = document.getElementById('searchResults');
+
+        if (query.length < 2) {
+            resultsDiv.classList.add('hidden');
             return;
         }
 
-        await this.loadPatientData(patientId);
+        // Buscar por nome, CPF ou ID
+        const results = this.allPacientes.filter(p => {
+            const idMatch = p.idPaciente.toString().includes(query);
+            const rgMatch = p.rgPaciente.toLowerCase().includes(query);
+            return idMatch || rgMatch;
+        }).slice(0, 5);
+
+        if (results.length === 0) {
+            resultsDiv.innerHTML = '<div class="search-result-item">Nenhum paciente encontrado</div>';
+            resultsDiv.classList.remove('hidden');
+            return;
+        }
+
+        resultsDiv.innerHTML = results.map(p => `
+            <div class="search-result-item" onclick="evolutionManager.loadPatientById(${p.idPaciente})">
+                <strong>ID: ${p.idPaciente}</strong>
+                <small>RG: ${p.rgPaciente} | ${p.estdoRgPac || 'N/A'}</small>
+            </div>
+        `).join('');
+
+        resultsDiv.classList.remove('hidden');
     }
 
+    selectFirstResult() {
+        const firstItem = document.querySelector('.search-result-item');
+        if (firstItem && firstItem.onclick) {
+            firstItem.click();
+        }
+    }
+
+    async loadPatientById(idPaciente) {
+        document.getElementById('searchResults').classList.add('hidden');
+        await this.loadPatientData(idPaciente);
+    }
+
+    // ========== CARREGAMENTO DE DADOS DO PACIENTE ==========
     async loadPatientData(patientId) {
         this.showLoading(true);
         
         try {
-            const [paciente, atendimentos, totalAtendimentos] = await Promise.all([
+            const [paciente, atendimentos] = await Promise.all([
                 api.buscarPacientePorId(patientId),
-                api.buscarAtendimentosPorPaciente(patientId),
-                api.contarAtendimentos(patientId)
+                api.buscarAtendimentosPorPaciente(patientId)
             ]);
 
             this.currentPatient = paciente;
-            this.currentAtendimentos = atendimentos;
+            this.currentAtendimentos = atendimentos.sort((a, b) => 
+                new Date(b.dataAtendi) - new Date(a.dataAtendi)
+            );
 
-            this.displayPatientInfo(paciente, totalAtendimentos);
-            this.displayTimeline(atendimentos);
+            // Buscar dados da pessoa física
+            await this.loadPessoaFis(paciente.idPessoaFis);
+
+            this.displayPatientDashboard();
+            this.displayTimeline();
+            this.displayMetrics();
+            this.displayChart();
+            this.displayKeywords();
+            
             this.showSections();
             this.showMessage('Paciente carregado com sucesso!', 'success');
         } catch (error) {
@@ -105,223 +180,315 @@ class EvolutionManager {
         }
     }
 
-    displayPatientInfo(paciente, totalAtendimentos) {
-        const patientInfo = document.getElementById('patientInfo');
-        const lastAtendimento = this.currentAtendimentos.length > 0 
-            ? this.currentAtendimentos[0].dataAtendi 
-            : 'Nenhum atendimento';
+    async loadPessoaFis(idPessoaFis) {
+        // Como não temos endpoint direto, vamos usar a view VW_PESSOAFIS se existir
+        // Por enquanto, guardar apenas o ID
+        this.currentPessoaFis = { idPessoaFis };
+    }
 
-        patientInfo.innerHTML = `
-            <div class="patient-header">
-                <div class="patient-details">
-                    <h3>Paciente ID: ${paciente.idPaciente}</h3>
-                    <p><strong>RG:</strong> ${paciente.rgPaciente}</p>
-                    <p><strong>Estado RG:</strong> ${paciente.estdoRgPac || 'N/A'}</p>
-                    <p>
-                        <strong>Status:</strong> 
-                        <span class="badge ${paciente.statusPac ? 'badge-success' : 'badge-danger'}">
-                            ${paciente.statusPac ? 'Ativo' : 'Inativo'}
-                        </span>
-                    </p>
+    // ========== DASHBOARD VISUAL ==========
+    displayPatientDashboard() {
+        const header = document.getElementById('patientHeader');
+        const p = this.currentPatient;
+
+        header.innerHTML = `
+            <div class="patient-name">Paciente ID: ${p.idPaciente}</div>
+            <div class="patient-info-grid">
+                <div class="patient-info-item">
+                    <i data-feather="credit-card"></i>
+                    <span>RG: ${p.rgPaciente}</span>
                 </div>
-            </div>
-            
-            <div class="patient-stats">
-                <div class="stat-card">
-                    <label>Total de Atendimentos</label>
-                    <div class="value">${totalAtendimentos}</div>
+                <div class="patient-info-item">
+                    <i data-feather="map-pin"></i>
+                    <span>UF: ${p.estdoRgPac || 'N/A'}</span>
                 </div>
-                <div class="stat-card" style="border-left-color: var(--secondary-color)">
-                    <label>Último Atendimento</label>
-                    <div class="value" style="font-size: 1rem;">${this.formatDate(lastAtendimento)}</div>
+                <div class="patient-info-item">
+                    <i data-feather="${p.statusPac ? 'check-circle' : 'x-circle'}"></i>
+                    <span>${p.statusPac ? 'Ativo' : 'Inativo'}</span>
                 </div>
-                <div class="stat-card" style="border-left-color: var(--warning-color)">
-                    <label>ID Pessoa Física</label>
-                    <div class="value">${paciente.idPessoaFis}</div>
+                <div class="patient-info-item">
+                    <i data-feather="user"></i>
+                    <span>ID Pessoa: ${p.idPessoaFis}</span>
                 </div>
             </div>
         `;
+
+        feather.replace();
     }
 
-    displayTimeline(atendimentos) {
-        const timeline = document.getElementById('timeline');
+    displayMetrics() {
+        const atends = this.currentAtendimentos;
         
-        if (!atendimentos || atendimentos.length === 0) {
-            timeline.innerHTML = `
-                <div class="empty-state">
-                    Nenhum atendimento registrado para este paciente
-                </div>
-            `;
+        if (atends.length === 0) {
+            document.getElementById('totalSessoes').textContent = '0';
+            document.getElementById('ultimaSessao').textContent = '-';
+            document.getElementById('diasTratamento').textContent = '0';
+            document.getElementById('frequenciaSemanal').textContent = '-';
             return;
         }
 
-        // Ordenar por data decrescente (mais recente primeiro)
-        const sortedAtendimentos = [...atendimentos].sort((a, b) => 
-            new Date(b.dataAtendi) - new Date(a.dataAtendi)
-        );
+        // Total de sessões
+        document.getElementById('totalSessoes').textContent = atends.length;
 
-        timeline.innerHTML = sortedAtendimentos.map(atendimento => `
-            <div class="timeline-item" data-id="${atendimento.idAtendiFisio}">
+        // Última sessão
+        const ultimaData = new Date(atends[0].dataAtendi);
+        const diasDesdeUltima = Math.floor((new Date() - ultimaData) / (1000 * 60 * 60 * 24));
+        document.getElementById('ultimaSessao').textContent = 
+            diasDesdeUltima === 0 ? 'Hoje' : 
+            diasDesdeUltima === 1 ? 'Ontem' : 
+            `${diasDesdeUltima} dias`;
+
+        // Dias em tratamento
+        const primeiraData = new Date(atends[atends.length - 1].dataAtendi);
+        const diasTratamento = Math.floor((new Date() - primeiraData) / (1000 * 60 * 60 * 24));
+        document.getElementById('diasTratamento').textContent = diasTratamento;
+
+        // Frequência semanal
+        const semanasCompletas = diasTratamento / 7;
+        const frequencia = semanasCompletas > 0 ? (atends.length / semanasCompletas).toFixed(1) : '-';
+        document.getElementById('frequenciaSemanal').textContent = frequencia + 'x';
+    }
+
+    displayChart() {
+        const ctx = document.getElementById('evolutionChart');
+        const atends = this.currentAtendimentos.slice().reverse().slice(-10); // Últimas 10 sessões
+
+        if (this.chart) {
+            this.chart.destroy();
+        }
+
+        const labels = atends.map(a => this.formatDate(a.dataAtendi));
+        const dataLength = atends.map(a => a.descrAtendi ? a.descrAtendi.length : 0);
+
+        this.chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Detalhamento da Evolução (caracteres)',
+                    data: dataLength,
+                    borderColor: 'rgb(79, 70, 229)',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `${context.parsed.y} caracteres`
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 50
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    displayKeywords() {
+        const allText = this.currentAtendimentos
+            .map(a => a.descrAtendi || '')
+            .join(' ')
+            .toLowerCase();
+
+        // Palavras relevantes (removendo stopwords)
+        const stopWords = ['o', 'a', 'de', 'da', 'do', 'e', 'que', 'em', 'para', 'com', 'no', 'na', 'os', 'as', 'dos', 'das', 'ao', 'à'];
+        
+        const words = allText
+            .replace(/[.,;:!?]/g, '')
+            .split(/\s+/)
+            .filter(w => w.length > 3 && !stopWords.includes(w));
+
+        const wordCount = {};
+        words.forEach(w => {
+            wordCount[w] = (wordCount[w] || 0) + 1;
+        });
+
+        const topWords = Object.entries(wordCount)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10);
+
+        const tagsDiv = document.getElementById('keywordsTags');
+        
+        if (topWords.length === 0) {
+            tagsDiv.innerHTML = '<em style="color: var(--gray-text);">Nenhuma evolução registrada ainda</em>';
+            return;
+        }
+
+        tagsDiv.innerHTML = topWords.map(([word, count]) => `
+            <span class="keyword-tag">
+                ${word}
+                <span class="count">${count}</span>
+            </span>
+        `).join('');
+    }
+
+    displayTimeline() {
+        const timeline = document.getElementById('timeline');
+        const atends = this.currentAtendimentos;
+        
+        if (atends.length === 0) {
+            timeline.innerHTML = '<div class="empty-state">Nenhum atendimento registrado</div>';
+            return;
+        }
+
+        timeline.innerHTML = atends.map(a => `
+            <div class="timeline-item" data-id="${a.idAtendiFisio}">
                 <div class="timeline-item-header">
-                    <div class="timeline-date">${this.formatDate(atendimento.dataAtendi)}</div>
+                    <div class="timeline-date">${this.formatDate(a.dataAtendi)}</div>
                     <div class="timeline-actions">
-                        <button class="btn btn-small btn-primary" onclick="evolutionManager.editEvolution(${atendimento.idAtendiFisio})">
-                            ✏️ Editar
+                        <button class="btn btn-small btn-primary" onclick="evolutionManager.editEvolution(${a.idAtendiFisio})">
+                            <i data-feather="edit-2"></i>
+                            Editar
                         </button>
-                        <button class="btn btn-small btn-danger" onclick="evolutionManager.deleteEvolution(${atendimento.idAtendiFisio})">
-                            🗑️ Excluir
+                        <button class="btn btn-small btn-danger" onclick="evolutionManager.deleteEvolution(${a.idAtendiFisio})">
+                            <i data-feather="trash-2"></i>
+                            Excluir
                         </button>
                     </div>
                 </div>
                 <div class="timeline-description">
-                    ${atendimento.descrAtendi || '<em>Sem descrição</em>'}
+                    ${a.descrAtendi || '<em>Sem descrição</em>'}
                 </div>
                 <div class="timeline-meta">
-                    <span><strong>ID Atendimento:</strong> ${atendimento.idAtendiFisio}</span>
-                    <span><strong>Profissional:</strong> ${atendimento.idProfissio}</span>
-                    <span><strong>Procedimento:</strong> ${atendimento.idProced}</span>
+                    <span><strong>ID:</strong> ${a.idAtendiFisio}</span>
+                    <span><strong>Profissional:</strong> ${a.idProfissio}</span>
+                    <span><strong>Procedimento:</strong> ${a.idProced}</span>
                 </div>
             </div>
         `).join('');
+        
+        feather.replace();
     }
 
-    showSections() {
-        document.getElementById('patientInfo').classList.add('active');
-        document.getElementById('evolutionForm').classList.add('active');
-        document.getElementById('timelineSection').classList.add('active');
-    }
-
+    // ========== SALVAR EVOLUÇÃO (SOAP) ==========
     async saveEvolution() {
         if (!this.currentPatient) {
             this.showMessage('Nenhum paciente selecionado', 'error');
             return;
         }
 
+        // Coletar texto SOAP
+        const subjetivo = document.getElementById('textoSubjetivo').value;
+        const objetivo = document.getElementById('textoObjetivo').value;
+        const avaliacao = document.getElementById('textoAvaliacao').value;
+        const plano = document.getElementById('textoPlano').value;
+
+        // Montar descrição completa
+        let descricao = '';
+        if (subjetivo) descricao += `S: ${subjetivo}\n`;
+        if (objetivo) descricao += `O: ${objetivo}\n`;
+        if (avaliacao) descricao += `A: ${avaliacao}\n`;
+        if (plano) descricao += `P: ${plano}`;
+
         const formData = {
             idPaciente: this.currentPatient.idPaciente,
             idProfissio: parseInt(document.getElementById('idProfissio').value),
             idProced: parseInt(document.getElementById('idProced').value),
             dataAtendi: document.getElementById('dataAtendi').value,
-            descrAtendi: document.getElementById('descrAtendi').value
+            descrAtendi: descricao.trim().substring(0, 250)
         };
 
-        // Validações
         if (!formData.idProfissio || !formData.idProced || !formData.dataAtendi) {
-            this.showMessage('Por favor, preencha todos os campos obrigatórios', 'error');
+            this.showMessage('Preencha todos os campos obrigatórios', 'error');
             return;
         }
 
         this.showLoading(true);
 
         try {
-            let result;
             if (this.editingAtendimento) {
-                // Atualizar atendimento existente
-                result = await api.atualizarAtendimento(this.editingAtendimento, formData);
-                this.showMessage('Evolução atualizada com sucesso!', 'success');
+                await api.atualizarAtendimento(this.editingAtendimento, formData);
+                this.showMessage('Evolução atualizada!', 'success');
             } else {
-                // Criar novo atendimento
-                result = await api.criarAtendimento(formData);
-                this.showMessage('Evolução registrada com sucesso!', 'success');
+                await api.criarAtendimento(formData);
+                this.showMessage('Evolução registrada!', 'success');
             }
 
-            // Recarregar dados do paciente
             await this.loadPatientData(this.currentPatient.idPaciente);
             this.resetForm();
         } catch (error) {
-            this.showMessage('Erro ao salvar evolução: ' + error.message, 'error');
-            console.error(error);
+            this.showMessage('Erro: ' + error.message, 'error');
         } finally {
             this.showLoading(false);
         }
     }
 
-    async editEvolution(idAtendimento) {
-        const atendimento = this.currentAtendimentos.find(a => a.idAtendiFisio === idAtendimento);
-        
-        if (!atendimento) {
-            this.showMessage('Atendimento não encontrado', 'error');
-            return;
-        }
+    async editEvolution(id) {
+        const atendimento = this.currentAtendimentos.find(a => a.idAtendiFisio === id);
+        if (!atendimento) return;
 
-        this.editingAtendimento = idAtendimento;
+        this.editingAtendimento = id;
         
-        // Preencher formulário
         document.getElementById('idProfissio').value = atendimento.idProfissio;
         document.getElementById('idProced').value = atendimento.idProced;
         document.getElementById('dataAtendi').value = atendimento.dataAtendi;
-        document.getElementById('descrAtendi').value = atendimento.descrAtendi || '';
 
-        // Mudar texto do botão
-        document.querySelector('#evolutionForm button[type="submit"]').innerHTML = '💾 Atualizar Evolução';
-        
-        // Scroll para o formulário
+        // Parsear SOAP
+        const descr = atendimento.descrAtendi || '';
+        const soapMatch = {
+            S: descr.match(/S:\s*([^\n]+)/),
+            O: descr.match(/O:\s*([^\n]+)/),
+            A: descr.match(/A:\s*([^\n]+)/),
+            P: descr.match(/P:\s*([^\n]+)/)
+        };
+
+        document.getElementById('textoSubjetivo').value = soapMatch.S ? soapMatch.S[1] : descr;
+        document.getElementById('textoObjetivo').value = soapMatch.O ? soapMatch.O[1] : '';
+        document.getElementById('textoAvaliacao').value = soapMatch.A ? soapMatch.A[1] : '';
+        document.getElementById('textoPlano').value = soapMatch.P ? soapMatch.P[1] : '';
+
         document.getElementById('evolutionForm').scrollIntoView({ behavior: 'smooth' });
-        
-        this.showMessage('Editando evolução. Faça as alterações e clique em Atualizar.', 'info');
+        this.showMessage('Editando evolução', 'info');
     }
 
-    async deleteEvolution(idAtendimento) {
-        if (!confirm('Tem certeza que deseja excluir esta evolução?')) {
-            return;
-        }
+    async deleteEvolution(id) {
+        if (!confirm('Excluir esta evolução?')) return;
 
         this.showLoading(true);
-
         try {
-            await api.deletarAtendimento(idAtendimento);
-            this.showMessage('Evolução excluída com sucesso!', 'success');
-            
-            // Recarregar dados do paciente
+            await api.deletarAtendimento(id);
+            this.showMessage('Evolução excluída!', 'success');
             await this.loadPatientData(this.currentPatient.idPaciente);
         } catch (error) {
-            this.showMessage('Erro ao excluir evolução: ' + error.message, 'error');
-            console.error(error);
+            this.showMessage('Erro: ' + error.message, 'error');
         } finally {
             this.showLoading(false);
         }
     }
 
-    async filterTimeline() {
-        const dataInicio = document.getElementById('dataInicio').value;
-        const dataFim = document.getElementById('dataFim').value;
+    copyLastSession() {
+        if (this.currentAtendimentos.length === 0) return;
 
-        if (!dataInicio || !dataFim) {
-            this.showMessage('Por favor, selecione data de início e fim', 'error');
-            return;
-        }
-
-        if (!this.currentPatient) {
-            this.showMessage('Nenhum paciente selecionado', 'error');
-            return;
-        }
-
-        this.showLoading(true);
-
-        try {
-            const evolucao = await api.buscarEvolucaoPaciente(
-                this.currentPatient.idPaciente,
-                dataInicio,
-                dataFim
-            );
-            
-            this.displayTimeline(evolucao);
-            this.showMessage(`Mostrando ${evolucao.length} atendimento(s) no período selecionado`, 'info');
-        } catch (error) {
-            this.showMessage('Erro ao filtrar evolução: ' + error.message, 'error');
-            console.error(error);
-        } finally {
-            this.showLoading(false);
-        }
-    }
-
-    async clearFilters() {
-        document.getElementById('dataInicio').value = '';
-        document.getElementById('dataFim').value = '';
+        const last = this.currentAtendimentos[0];
+        const descr = last.descrAtendi || '';
         
-        if (this.currentPatient) {
-            await this.loadPatientData(this.currentPatient.idPaciente);
-        }
+        const soapMatch = {
+            S: descr.match(/S:\s*([^\n]+)/),
+            O: descr.match(/O:\s*([^\n]+)/),
+            A: descr.match(/A:\s*([^\n]+)/),
+            P: descr.match(/P:\s*([^\n]+)/)
+        };
+
+        document.getElementById('textoSubjetivo').value = soapMatch.S ? soapMatch.S[1] : descr;
+        document.getElementById('textoObjetivo').value = soapMatch.O ? soapMatch.O[1] : '';
+        document.getElementById('textoAvaliacao').value = soapMatch.A ? soapMatch.A[1] : '';
+        document.getElementById('textoPlano').value = soapMatch.P ? soapMatch.P[1] : '';
+
+        this.showMessage('Última sessão copiada!', 'info');
     }
 
     cancelEvolution() {
@@ -331,11 +498,114 @@ class EvolutionManager {
 
     resetForm() {
         document.getElementById('evolutionFormElement').reset();
+        document.querySelectorAll('.tag-chip').forEach(c => c.classList.remove('selected'));
         this.editingAtendimento = null;
-        document.querySelector('#evolutionForm button[type="submit"]').innerHTML = '💾 Registrar Evolução';
-        
-        // Definir data atual como padrão
         document.getElementById('dataAtendi').value = new Date().toISOString().split('T')[0];
+    }
+
+    // ========== FILTROS E COMPARAÇÃO ==========
+    toggleFilterPanel() {
+        document.getElementById('filterPanel').classList.toggle('hidden');
+    }
+
+    toggleCompareMode() {
+        const panel = document.getElementById('comparePanel');
+        panel.classList.toggle('hidden');
+
+        if (!panel.classList.contains('hidden')) {
+            this.populateCompareSelects();
+        }
+    }
+
+    populateCompareSelects() {
+        const selectA = document.getElementById('compareA');
+        const selectB = document.getElementById('compareB');
+
+        const options = this.currentAtendimentos.map(a => `
+            <option value="${a.idAtendiFisio}">
+                ${this.formatDate(a.dataAtendi)} - ${a.descrAtendi?.substring(0, 30) || 'Sem descrição'}...
+            </option>
+        `).join('');
+
+        selectA.innerHTML = options;
+        selectB.innerHTML = options;
+
+        if (this.currentAtendimentos.length > 1) {
+            selectB.selectedIndex = 1;
+        }
+    }
+
+    runComparison() {
+        const idA = parseInt(document.getElementById('compareA').value);
+        const idB = parseInt(document.getElementById('compareB').value);
+
+        const sessaoA = this.currentAtendimentos.find(a => a.idAtendiFisio === idA);
+        const sessaoB = this.currentAtendimentos.find(a => a.idAtendiFisio === idB);
+
+        const resultDiv = document.getElementById('compareResult');
+        
+        resultDiv.innerHTML = `
+            <h4>Comparação de Sessões</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px;">
+                <div>
+                    <strong>${this.formatDate(sessaoA.dataAtendi)}</strong>
+                    <p style="margin-top: 8px;">${sessaoA.descrAtendi || 'Sem descrição'}</p>
+                </div>
+                <div>
+                    <strong>${this.formatDate(sessaoB.dataAtendi)}</strong>
+                    <p style="margin-top: 8px;">${sessaoB.descrAtendi || 'Sem descrição'}</p>
+                </div>
+            </div>
+        `;
+    }
+
+    async applyFilter() {
+        const dataInicio = document.getElementById('dataInicio').value;
+        const dataFim = document.getElementById('dataFim').value;
+
+        if (!dataInicio || !dataFim) {
+            this.showMessage('Selecione data início e fim', 'error');
+            return;
+        }
+
+        this.showLoading(true);
+        try {
+            const filtered = await api.buscarEvolucaoPaciente(
+                this.currentPatient.idPaciente,
+                dataInicio,
+                dataFim
+            );
+            
+            this.currentAtendimentos = filtered.sort((a, b) => 
+                new Date(b.dataAtendi) - new Date(a.dataAtendi)
+            );
+            
+            this.displayTimeline();
+            this.displayChart();
+            this.showMessage(`${filtered.length} atendimento(s) no período`, 'info');
+        } catch (error) {
+            this.showMessage('Erro ao filtrar: ' + error.message, 'error');
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    async clearFilter() {
+        document.getElementById('dataInicio').value = '';
+        document.getElementById('dataFim').value = '';
+        await this.loadPatientData(this.currentPatient.idPaciente);
+    }
+
+    // ========== UTILIDADES ==========
+    showSections() {
+        document.getElementById('patientDashboard').classList.add('active');
+        document.getElementById('evolutionForm').classList.add('active');
+        document.getElementById('timelineSection').classList.add('active');
+    }
+
+    updateQuickStats() {
+        document.getElementById('totalPacientes').textContent = this.allPacientes.length;
+        document.getElementById('atendimentosHoje').textContent = '0'; // Implementar se necessário
     }
 
     showMessage(message, type = 'info') {
@@ -343,7 +613,6 @@ class EvolutionManager {
         messageDiv.className = `message message-${type} active`;
         messageDiv.textContent = message;
 
-        // Auto-esconder após 5 segundos
         setTimeout(() => {
             messageDiv.classList.remove('active');
         }, 5000);
@@ -351,30 +620,20 @@ class EvolutionManager {
 
     showLoading(show) {
         const loading = document.getElementById('loading');
-        if (show) {
-            loading.classList.add('active');
-        } else {
-            loading.classList.remove('active');
-        }
+        loading.classList.toggle('active', show);
     }
 
     formatDate(dateString) {
         if (!dateString) return 'N/A';
-        
         const date = new Date(dateString + 'T00:00:00');
-        return date.toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
+        return date.toLocaleDateString('pt-BR');
     }
 }
 
-// Inicializar quando o DOM estiver pronto
+// Inicializar
 let evolutionManager;
 document.addEventListener('DOMContentLoaded', () => {
     evolutionManager = new EvolutionManager();
-    
-    // Definir data atual como padrão no formulário
     document.getElementById('dataAtendi').value = new Date().toISOString().split('T')[0];
+    feather.replace();
 });
