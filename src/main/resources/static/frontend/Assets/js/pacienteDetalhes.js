@@ -203,6 +203,14 @@ class PacienteDetalhesManager {
 
         infoGrid.innerHTML = `
             <div class="info-item">
+                <div class="info-label">Nome</div>
+                <div class="info-value">${detalhes.nomePessoa || '-'}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">CPF</div>
+                <div class="info-value">${detalhes.cpfPessoa || '-'}</div>
+            </div>
+            <div class="info-item">
                 <div class="info-label">RG Paciente</div>
                 <div class="info-value">${detalhes.rgPaciente || '-'}</div>
             </div>
@@ -213,6 +221,14 @@ class PacienteDetalhesManager {
             <div class="info-item">
                 <div class="info-label">Estado Órgão</div>
                 <div class="info-value">${detalhes.estdoRgPac || '-'}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Sexo</div>
+                <div class="info-value">${detalhes.sexoPessoa === 'M' ? 'Masculino' : detalhes.sexoPessoa === 'F' ? 'Feminino' : '-'}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Data de Nascimento</div>
+                <div class="info-value">${detalhes.dataNascPes ? new Date(detalhes.dataNascPes).toLocaleDateString('pt-BR') : '-'}</div>
             </div>
             <div class="info-item">
                 <div class="info-label">ID Paciente</div>

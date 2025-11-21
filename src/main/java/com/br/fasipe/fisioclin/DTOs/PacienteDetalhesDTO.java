@@ -21,6 +21,12 @@ public class PacienteDetalhesDTO {
     private String estdoRgPac;
     private Boolean statusPac;
     
+    // Dados da pessoa física
+    private String nomePessoa;
+    private String cpfPessoa;
+    private LocalDate dataNascPes;
+    private String sexoPessoa;
+    
     // Estatísticas gerais
     private EstatisticasDTO estatisticas;
     

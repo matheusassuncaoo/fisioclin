@@ -21,6 +21,9 @@ public class Paciente {
     @Column(name = "IDPACIENTE")
     private Integer idPaciente;
     
+    @Column(name = "ID_PESSOAFIS", nullable = false, unique = true)
+    private Integer idPessoaFis;
+    
     @NotBlank(message = "RG do paciente é obrigatório")
     @Size(max = 15, message = "RG deve ter no máximo 15 caracteres")
     @Column(name = "RGPACIENTE", nullable = false, unique = true, length = 15)

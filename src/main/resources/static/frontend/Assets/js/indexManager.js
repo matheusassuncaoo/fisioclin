@@ -135,7 +135,7 @@ class FisioclinApp {
         tbody.innerHTML = pacientes.map(p => `
             <tr>
                 <td>${p.idPaciente}</td>
-                <td>${p.rgPaciente || '-'}</td>
+                <td>${p.nomePessoa || '-'}</td>
                 <td>${p.rgPaciente || '-'}</td>
                 <td>${p.estdoRgPac || '-'}</td>
                 <td>
@@ -160,6 +160,7 @@ class FisioclinApp {
     filterPacientes(term) {
         const lowerTerm = term.toLowerCase();
         const filtered = this.allPacientes.filter(p => 
+            p.nomePessoa?.toLowerCase().includes(lowerTerm) ||
             p.rgPaciente?.toLowerCase().includes(lowerTerm) ||
             p.idPaciente.toString().includes(lowerTerm) ||
             p.estdoRgPac?.toLowerCase().includes(lowerTerm)
@@ -179,7 +180,7 @@ class FisioclinApp {
 
             // Update modal title
             document.getElementById('modalTitle').textContent = 
-                `Atendimento - ${paciente.rgPaciente} (ID: ${paciente.idPaciente})`;
+                `Atendimento - ${paciente.nomePessoa || paciente.rgPaciente} (ID: ${paciente.idPaciente})`;
 
             // Show modal
             document.getElementById('modalAtendimento').classList.remove('hidden');

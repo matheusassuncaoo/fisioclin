@@ -1,6 +1,7 @@
 package com.br.fasipe.fisioclin.Services;
 
 import com.br.fasipe.fisioclin.DTOs.AtendimentoSOAPDTO;
+import com.br.fasipe.fisioclin.DTOs.PacienteComNomeDTO;
 import com.br.fasipe.fisioclin.DTOs.PacienteDetalhesDTO;
 import com.br.fasipe.fisioclin.DTOs.PacienteDetalhesDTO.*;
 import com.br.fasipe.fisioclin.Models.*;
@@ -26,6 +27,9 @@ public class PacienteDetalhesService {
     private PacienteRepository pacienteRepository;
     
     @Autowired
+    private PacienteService pacienteService;
+    
+    @Autowired
     private AtendiFisioRepository atendiFisioRepository;
     
     @Autowired
@@ -43,16 +47,23 @@ public class PacienteDetalhesService {
      */
     @Transactional(readOnly = true)
     public PacienteDetalhesDTO buscarDetalhesCompletos(Integer idPaciente) {
-        Paciente paciente = pacienteRepository.findById(idPaciente)
+        // Buscar paciente com dados da pessoa física
+        PacienteComNomeDTO pacienteComNome = pacienteService.buscarPorIdComNome(idPaciente)
             .orElseThrow(() -> new IllegalArgumentException("Paciente não encontrado"));
         
         PacienteDetalhesDTO detalhes = new PacienteDetalhesDTO();
         
-        // Dados básicos
-        detalhes.setIdPaciente(paciente.getIdPaciente());
-        detalhes.setRgPaciente(paciente.getRgPaciente());
-        detalhes.setEstdoRgPac(paciente.getEstdoRgPac());
-        detalhes.setStatusPac(paciente.getStatusPac());
+        // Dados básicos do paciente
+        detalhes.setIdPaciente(pacienteComNome.getIdPaciente());
+        detalhes.setRgPaciente(pacienteComNome.getRgPaciente());
+        detalhes.setEstdoRgPac(pacienteComNome.getEstdoRgPac());
+        detalhes.setStatusPac(pacienteComNome.getStatusPac());
+        
+        // Dados da pessoa física
+        detalhes.setNomePessoa(pacienteComNome.getNomePessoa());
+        detalhes.setCpfPessoa(pacienteComNome.getCpfPessoa());
+        detalhes.setDataNascPes(pacienteComNome.getDataNascPes());
+        detalhes.setSexoPessoa(pacienteComNome.getSexoPessoa());
         
         // Estatísticas
         detalhes.setEstatisticas(calcularEstatisticas(idPaciente));
@@ -163,7 +174,7 @@ public class PacienteDetalhesService {
      */
     private List<ExercicioPrescritoDTO> buscarExerciciosAtivos(Integer idPaciente) {
         // Buscar exercícios realizados recentemente
-        List<ExercRealizado> exerciciosRealizados = exercRealizadoRepository.findByPaciente(idPaciente);
+        // List<ExercRealizado> exerciciosRealizados = exercRealizadoRepository.findByPaciente(idPaciente);
         
         // Agrupar por prescrição e contar
         // Simplificado - em produção, usar GROUP BY na query

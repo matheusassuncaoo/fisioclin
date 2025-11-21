@@ -1,5 +1,6 @@
 package com.br.fasipe.fisioclin.Controllers;
 
+import com.br.fasipe.fisioclin.DTOs.PacienteComNomeDTO;
 import com.br.fasipe.fisioclin.Models.Paciente;
 import com.br.fasipe.fisioclin.Services.PacienteService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,17 @@ public class PacienteController {
         }
     }
     
+    @GetMapping("/ativos/com-nome")
+    public ResponseEntity<List<PacienteComNomeDTO>> listarAtivosComNome() {
+        try {
+            List<PacienteComNomeDTO> pacientes = pacienteService.listarAtivosComNome();
+            return ResponseEntity.ok(pacientes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
     @GetMapping("/inativos")
     public ResponseEntity<List<Paciente>> listarInativos() {
         try {
@@ -45,9 +57,38 @@ public class PacienteController {
         }
     }
     
+    @GetMapping("/inativos/com-nome")
+    public ResponseEntity<List<PacienteComNomeDTO>> listarInativosComNome() {
+        try {
+            List<PacienteComNomeDTO> pacientes = pacienteService.listarInativosComNome();
+            return ResponseEntity.ok(pacientes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/com-nome")
+    public ResponseEntity<List<PacienteComNomeDTO>> listarTodosComNome() {
+        try {
+            List<PacienteComNomeDTO> pacientes = pacienteService.listarTodosComNome();
+            return ResponseEntity.ok(pacientes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
     @GetMapping("/{id}")
     public ResponseEntity<Paciente> buscarPorId(@PathVariable Integer id) {
         return pacienteService.buscarPorId(id)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @GetMapping("/{id}/com-nome")
+    public ResponseEntity<PacienteComNomeDTO> buscarPorIdComNome(@PathVariable Integer id) {
+        return pacienteService.buscarPorIdComNome(id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }

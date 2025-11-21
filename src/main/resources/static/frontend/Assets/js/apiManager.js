@@ -56,19 +56,19 @@ class ApiManager {
     }
 
     async listarPacientesAtivos() {
-        return this.request('/pacientes/ativos');
+        return this.request('/pacientes/ativos/com-nome');
     }
 
     async listarPacientesInativos() {
-        return this.request('/pacientes/inativos');
+        return this.request('/pacientes/inativos/com-nome');
     }
 
     async listarTodosPacientes() {
-        return this.request('/pacientes');
+        return this.request('/pacientes/com-nome');
     }
 
     async buscarPacientePorId(id) {
-        return this.request(`/pacientes/${id}`);
+        return this.request(`/pacientes/${id}/com-nome`);
     }
 
     async buscarPacientePorRg(rg) {
