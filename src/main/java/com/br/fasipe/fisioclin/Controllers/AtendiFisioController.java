@@ -1,6 +1,7 @@
 package com.br.fasipe.fisioclin.Controllers;
 
 import com.br.fasipe.fisioclin.Models.AtendiFisio;
+import com.br.fasipe.fisioclin.DTOs.AtendimentoSOAPDTO;
 import com.br.fasipe.fisioclin.Services.AtendiFisioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -84,6 +85,16 @@ public class AtendiFisioController {
     public ResponseEntity<AtendiFisio> criar(@RequestBody AtendiFisio atendimento) {
         try {
             AtendiFisio novoAtendimento = atendiFisioService.salvar(atendimento);
+            return ResponseEntity.status(HttpStatus.CREATED).body(novoAtendimento);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @PostMapping("/soap")
+    public ResponseEntity<AtendiFisio> criarComSOAP(@RequestBody AtendimentoSOAPDTO dto) {
+        try {
+            AtendiFisio novoAtendimento = atendiFisioService.criarComSOAP(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(novoAtendimento);
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().build();

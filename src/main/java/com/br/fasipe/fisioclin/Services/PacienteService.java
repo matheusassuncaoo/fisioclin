@@ -26,6 +26,11 @@ public class PacienteService {
     }
     
     @Transactional(readOnly = true)
+    public List<Paciente> listarInativos() {
+        return pacienteRepository.findByStatusPacFalse();
+    }
+    
+    @Transactional(readOnly = true)
     public Optional<Paciente> buscarPorId(Integer id) {
         return pacienteRepository.findById(id);
     }

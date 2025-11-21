@@ -18,6 +18,9 @@ public interface PacienteRepository extends JpaRepository<Paciente, Integer> {
     // Listar apenas pacientes ativos
     List<Paciente> findByStatusPacTrue();
     
+    // Listar apenas pacientes inativos
+    List<Paciente> findByStatusPacFalse();
+    
     // Contar pacientes ativos
     @Query("SELECT COUNT(p) FROM Paciente p WHERE p.statusPac = true")
     Long countPacientesAtivos();

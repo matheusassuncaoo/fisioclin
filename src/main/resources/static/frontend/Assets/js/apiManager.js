@@ -59,6 +59,14 @@ class ApiManager {
         return this.request('/pacientes/ativos');
     }
 
+    async listarPacientesInativos() {
+        return this.request('/pacientes/inativos');
+    }
+
+    async listarTodosPacientes() {
+        return this.request('/pacientes');
+    }
+
     async buscarPacientePorId(id) {
         return this.request(`/pacientes/${id}`);
     }
@@ -87,6 +95,26 @@ class ApiManager {
 
     async contarPacientesAtivos() {
         return this.request('/pacientes/count/ativos');
+    }
+
+    /**
+     * Busca TODOS os detalhes consolidados do paciente
+     * Inclui: estatísticas, última anamnese, últimos atendimentos,
+     * exercícios ativos e evolução dos últimos 30 dias
+     */
+    async buscarDetalhesCompletos(idPaciente) {
+        return this.request(`/pacientes/${idPaciente}/detalhes`);
+    }
+
+    /**
+     * Cria uma nova evolução usando método SOAP
+     * @param {Object} soapData - {idPaciente, idProfissio, idProced, idEspec, dataAtendimento, subjetivo, objetivo, avaliacao, plano}
+     */
+    async criarEvolucaoSOAP(soapData) {
+        return this.request('/pacientes/evolucao-soap', {
+            method: 'POST',
+            body: JSON.stringify(soapData),
+        });
     }
 
     // ===== ATENDIMENTOS DE FISIOTERAPIA =====
@@ -127,6 +155,13 @@ class ApiManager {
         return this.request('/atendimentos', {
             method: 'POST',
             body: JSON.stringify(atendimento),
+        });
+    }
+    
+    async criarAtendimentoSOAP(atendimentoSOAP) {
+        return this.request('/atendimentos/soap', {
+            method: 'POST',
+            body: JSON.stringify(atendimentoSOAP),
         });
     }
 

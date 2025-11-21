@@ -33,6 +33,10 @@ public interface AtendiFisioRepository extends JpaRepository<AtendiFisio, Intege
     @Query("SELECT a FROM AtendiFisio a WHERE a.idPaciente = :idPaciente ORDER BY a.dataAtendi DESC LIMIT 1")
     AtendiFisio findUltimoAtendimento(@Param("idPaciente") Integer idPaciente);
     
+    // Primeiro atendimento do paciente
+    @Query("SELECT a FROM AtendiFisio a WHERE a.idPaciente = :idPaciente ORDER BY a.dataAtendi ASC LIMIT 1")
+    AtendiFisio findPrimeiroAtendimento(@Param("idPaciente") Integer idPaciente);
+    
     // Contar atendimentos do paciente
     Long countByIdPaciente(Integer idPaciente);
     

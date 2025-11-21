@@ -177,21 +177,16 @@ class FisioclinApp {
             
             this.currentPatient = paciente;
 
-            // Buscar atendimentos
-            this.currentAtendimentos = await api.buscarAtendimentosPorPaciente(idPaciente);
-            this.currentAtendimentos.sort((a, b) => new Date(b.dataAtendi) - new Date(a.dataAtendi));
-
             // Update modal title
             document.getElementById('modalTitle').textContent = 
                 `Atendimento - ${paciente.rgPaciente} (ID: ${paciente.idPaciente})`;
 
-            // Load tabs data
-            this.updateHistoricoTab();
-            this.updateInfoTab();
-
             // Show modal
             document.getElementById('modalAtendimento').classList.remove('hidden');
             this.switchTab('nova-evolucao');
+
+            // Carregar detalhes completos do paciente usando o novo serviço
+            await pacienteDetalhesManager.carregarDetalhesCompletos(idPaciente);
 
             feather.replace();
         } catch (error) {
@@ -292,19 +287,19 @@ class FisioclinApp {
         }
 
         const data = {
-            dataAtendi: document.getElementById('inputDate').value,
+            idPaciente: this.currentPatient.idPaciente,
+            idProfissio: parseInt(document.getElementById('inputProf').value),
+            codProced: document.getElementById('inputProc').value,
+            dataAtendimento: document.getElementById('inputDate').value,
             subjetivo: document.getElementById('inputS').value,
             objetivo: document.getElementById('inputO').value,
             avaliacao: document.getElementById('inputA').value,
-            plano: document.getElementById('inputP').value,
-            paciente: { idPaciente: this.currentPatient.idPaciente },
-            pessoaFis: { idPessoaFis: parseInt(document.getElementById('inputProf').value) },
-            procedimento: { idProcedimento: parseInt(document.getElementById('inputProc').value) }
+            plano: document.getElementById('inputP').value
         };
 
         try {
             this.showLoading(true);
-            await api.criarAtendimento(data);
+            await api.criarAtendimentoSOAP(data);
             
             alert('Evolução salva com sucesso!');
             

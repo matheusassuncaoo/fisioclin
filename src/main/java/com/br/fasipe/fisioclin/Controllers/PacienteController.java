@@ -34,6 +34,17 @@ public class PacienteController {
         }
     }
     
+    @GetMapping("/inativos")
+    public ResponseEntity<List<Paciente>> listarInativos() {
+        try {
+            List<Paciente> pacientes = pacienteService.listarInativos();
+            return ResponseEntity.ok(pacientes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
     @GetMapping("/{id}")
     public ResponseEntity<Paciente> buscarPorId(@PathVariable Integer id) {
         return pacienteService.buscarPorId(id)

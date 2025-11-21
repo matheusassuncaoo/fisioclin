@@ -208,19 +208,19 @@
               <div class="soap-inputs">
                 <div class="soap-field">
                   <label class="s-label" title="Subjetivo">S</label>
-                  <textarea id="inputS" placeholder="Subjetivo: Queixa do paciente..."></textarea>
+                  <textarea id="inputS" placeholder="Subjetivo: Queixa do paciente, como se sente hoje..."></textarea>
                 </div>
                 <div class="soap-field">
                   <label class="o-label" title="Objetivo">O</label>
-                  <textarea id="inputO" placeholder="Objetivo: Conduta realizada..."></textarea>
+                  <textarea id="inputO" placeholder="Objetivo: Conduta realizada, exercícios, aparelhos..."></textarea>
                 </div>
                 <div class="soap-field">
                   <label class="a-label" title="Avaliação">A</label>
-                  <textarea id="inputA" placeholder="Avaliação: Resposta ao tratamento..."></textarea>
+                  <textarea id="inputA" placeholder="Avaliação: Resposta ao tratamento, melhora/piora..."></textarea>
                 </div>
                 <div class="soap-field">
                   <label class="p-label" title="Plano">P</label>
-                  <textarea id="inputP" placeholder="Plano: Próximos passos..."></textarea>
+                  <textarea id="inputP" placeholder="Plano: Conduta para próxima sessão..."></textarea>
                 </div>
               </div>
 
@@ -239,6 +239,45 @@
 
           <!-- Tab Content: Informações -->
           <div id="tabInfo" class="tab-content">
+            <!-- Estatísticas -->
+            <div class="stats-grid mb-3">
+              <div class="stat-card">
+                <i data-feather="activity"></i>
+                <div class="stat-value" id="statTotalAtend">-</div>
+                <div class="stat-label">Total Atendimentos</div>
+              </div>
+              <div class="stat-card">
+                <i data-feather="calendar"></i>
+                <div class="stat-value" id="statDiasTrat">-</div>
+                <div class="stat-label">Dias em Tratamento</div>
+              </div>
+              <div class="stat-card">
+                <i data-feather="trending-up"></i>
+                <div class="stat-value" id="statFreqSemanal">-</div>
+                <div class="stat-label">Freq. Semanal</div>
+              </div>
+              <div class="stat-card">
+                <i data-feather="file-text"></i>
+                <div class="stat-value" id="statTotalPront">-</div>
+                <div class="stat-label">Prontuários</div>
+              </div>
+            </div>
+
+            <!-- Gráfico de Evolução -->
+            <div class="chart-container mb-3">
+              <h4>Evolução dos Últimos 30 Dias</h4>
+              <canvas id="chartEvolucao"></canvas>
+            </div>
+
+            <!-- Última Anamnese -->
+            <div id="ultimaAnamneseCard" class="info-card mb-3">
+              <h4><i data-feather="clipboard"></i> Última Anamnese</h4>
+              <div id="ultimaAnamneseContent">
+                <p>Nenhuma anamnese registrada</p>
+              </div>
+            </div>
+
+            <!-- Dados Básicos -->
             <div id="pacienteInfo" class="info-grid">
               <p>Carregando informações...</p>
             </div>
@@ -249,6 +288,7 @@
 
     <!-- Scripts -->
     <script src="Assets/js/apiManager.js"></script>
+    <script src="Assets/js/pacienteDetalhes.js"></script>
     <script src="Assets/js/indexManager.js"></script>
     <script>
       feather.replace();
