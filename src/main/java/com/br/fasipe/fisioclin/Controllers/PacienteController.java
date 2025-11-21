@@ -3,6 +3,13 @@ package com.br.fasipe.fisioclin.Controllers;
 import com.br.fasipe.fisioclin.DTOs.PacienteComNomeDTO;
 import com.br.fasipe.fisioclin.Models.Paciente;
 import com.br.fasipe.fisioclin.Services.PacienteService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,11 +20,16 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/pacientes")
 @CrossOrigin(origins = "*")
+@Tag(name = "Pacientes", description = "API para gerenciamento de pacientes")
 public class PacienteController {
     
     @Autowired
     private PacienteService pacienteService;
     
+    @Operation(summary = "Listar todos os pacientes", description = "Retorna lista completa de pacientes cadastrados")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lista de pacientes retornada com sucesso")
+    })
     @GetMapping
     public ResponseEntity<List<Paciente>> listarTodos() {
         List<Paciente> pacientes = pacienteService.listarTodos();
@@ -35,6 +47,11 @@ public class PacienteController {
         }
     }
     
+    @Operation(summary = "Listar pacientes ativos com nome", description = "Retorna pacientes ativos incluindo dados da pessoa física (nome, CPF, etc)")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
+        @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @GetMapping("/ativos/com-nome")
     public ResponseEntity<List<PacienteComNomeDTO>> listarAtivosComNome() {
         try {
@@ -86,8 +103,14 @@ public class PacienteController {
             .orElse(ResponseEntity.notFound().build());
     }
     
+    @Operation(summary = "Buscar paciente por ID com nome", description = "Retorna dados completos do paciente incluindo informações da pessoa física")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Paciente encontrado"),
+        @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
+    })
     @GetMapping("/{id}/com-nome")
-    public ResponseEntity<PacienteComNomeDTO> buscarPorIdComNome(@PathVariable Integer id) {
+    public ResponseEntity<PacienteComNomeDTO> buscarPorIdComNome(
+        @Parameter(description = "ID do paciente", required = true) @PathVariable Integer id) {
         return pacienteService.buscarPorIdComNome(id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
