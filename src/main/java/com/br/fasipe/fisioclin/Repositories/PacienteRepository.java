@@ -12,10 +12,6 @@ import java.util.Optional;
 @Repository
 public interface PacienteRepository extends JpaRepository<Paciente, Integer> {
     
-    // Buscar paciente por CPF (via PessoaFis)
-    @Query("SELECT p FROM Paciente p WHERE p.idPessoaFis = :idPessoaFis")
-    Optional<Paciente> findByIdPessoaFis(@Param("idPessoaFis") Integer idPessoaFis);
-    
     // Buscar por RG
     Optional<Paciente> findByRgPaciente(String rgPaciente);
     

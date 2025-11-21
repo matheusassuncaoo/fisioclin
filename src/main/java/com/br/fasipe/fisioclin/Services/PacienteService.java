@@ -35,20 +35,11 @@ public class PacienteService {
         return pacienteRepository.findByRgPaciente(rg);
     }
     
-    @Transactional(readOnly = true)
-    public Optional<Paciente> buscarPorIdPessoaFis(Integer idPessoaFis) {
-        return pacienteRepository.findByIdPessoaFis(idPessoaFis);
-    }
-    
     @Transactional
     public Paciente salvar(Paciente paciente) {
         // Validações
         if (paciente.getRgPaciente() == null || paciente.getRgPaciente().trim().isEmpty()) {
             throw new IllegalArgumentException("RG do paciente é obrigatório");
-        }
-        
-        if (paciente.getIdPessoaFis() == null) {
-            throw new IllegalArgumentException("ID da pessoa física é obrigatório");
         }
         
         // Verificar se RG já existe

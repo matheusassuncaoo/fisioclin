@@ -1,0 +1,325 @@
+/* ============================================
+   FISIOCLIN - Responsive Design
+   Mobile-First Approach
+   ============================================ */
+
+/* ============================================
+   TABLET (max-width: 1024px)
+   ============================================ */
+@media (max-width: 1024px) {
+    .app-container {
+        grid-template-columns: 280px 1fr;
+    }
+    
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .history-drawer {
+        width: 400px;
+    }
+}
+
+/* ============================================
+   MOBILE (max-width: 768px)
+   ============================================ */
+@media (max-width: 768px) {
+    .app-container {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Sidebar vira overlay em mobile */
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 320px;
+        z-index: 1500;
+        transform: translateX(-100%);
+        transition: transform var(--transition-slow);
+    }
+    
+    .sidebar.open {
+        transform: translateX(0);
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Overlay para fechar sidebar */
+    .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1400;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--transition-base);
+    }
+    
+    .sidebar-overlay.active {
+        opacity: 1;
+        pointer-events: all;
+    }
+    
+    /* Main content ocupa tela toda */
+    .main-content {
+        padding: var(--space-4);
+    }
+    
+    /* Header do paciente responsivo */
+    .patient-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-4);
+    }
+    
+    .patient-identity h1 {
+        font-size: 1.5rem;
+    }
+    
+    /* Form grid em coluna única */
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* SOAP fields stack verticalmente */
+    .soap-field {
+        flex-direction: column;
+        gap: var(--space-3);
+    }
+    
+    .soap-field label {
+        margin-top: 0;
+        align-self: flex-start;
+    }
+    
+    /* History drawer ocupa tela toda */
+    .history-drawer {
+        width: 100%;
+        max-width: 480px;
+    }
+    
+    /* Mini stats em coluna */
+    .mini-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Botões ocupam largura total */
+    .header-actions {
+        width: 100%;
+    }
+    
+    .header-actions .btn {
+        flex: 1;
+    }
+    
+    /* Workspace padding reduzido */
+    .workspace {
+        padding: 0;
+    }
+    
+    /* Cards com menos padding */
+    .card-body {
+        padding: var(--space-4);
+    }
+    
+    .card-header {
+        padding: var(--space-4);
+    }
+    
+    /* Tags em mobile */
+    .quick-tags {
+        gap: var(--space-1);
+    }
+    
+    .tag {
+        font-size: 0.688rem;
+        padding: var(--space-1) var(--space-2);
+    }
+}
+
+/* ============================================
+   SMALL MOBILE (max-width: 480px)
+   ============================================ */
+@media (max-width: 480px) {
+    :root {
+        font-size: 14px;
+    }
+    
+    .main-content {
+        padding: var(--space-3);
+    }
+    
+    .brand {
+        font-size: 1.25rem;
+        padding: var(--space-4);
+    }
+    
+    .patient-identity h1 {
+        font-size: 1.25rem;
+    }
+    
+    .badges {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .card {
+        border-radius: var(--radius-lg);
+    }
+    
+    .soap-field textarea {
+        min-height: 80px;
+        padding: var(--space-3);
+    }
+    
+    .btn-lg {
+        padding: var(--space-3) var(--space-4);
+        font-size: 0.938rem;
+    }
+    
+    .stat .val {
+        font-size: 1.5rem;
+    }
+}
+
+/* ============================================
+   LANDSCAPE MOBILE
+   ============================================ */
+@media (max-width: 768px) and (orientation: landscape) {
+    .main-content {
+        padding: var(--space-3);
+    }
+    
+    .empty-workspace {
+        padding: var(--space-6);
+    }
+    
+    .illustration {
+        padding: var(--space-4);
+    }
+    
+    .illustration i {
+        width: 48px;
+        height: 48px;
+    }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+    .sidebar,
+    .header-actions,
+    .btn,
+    .history-drawer,
+    .loading-overlay {
+        display: none !important;
+    }
+    
+    .app-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .main-content {
+        padding: 0;
+        overflow: visible;
+    }
+    
+    .card {
+        break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid var(--border-dark);
+    }
+    
+    .workspace {
+        max-width: 100%;
+    }
+}
+
+/* ============================================
+   DARK MODE SUPPORT (Optional)
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-base: #111827;
+        --bg-surface: #1f2937;
+        --text-primary: #f9fafb;
+        --text-secondary: #d1d5db;
+        --border-light: #374151;
+        --border-medium: #4b5563;
+    }
+    
+    /* Ajustes específicos para dark mode podem ser adicionados aqui */
+}
+
+/* ============================================
+   HIGH CONTRAST MODE
+   ============================================ */
+@media (prefers-contrast: high) {
+    .btn-primary {
+        border: 2px solid var(--text-inverse);
+    }
+    
+    .card {
+        border-width: 2px;
+    }
+    
+    .patient-item:hover,
+    .patient-item.active {
+        border-width: 2px;
+    }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .spinner {
+        animation: none;
+        border-top-color: var(--primary-500);
+    }
+}
+
+/* ============================================
+   TOUCH DEVICE OPTIMIZATIONS
+   ============================================ */
+@media (hover: none) and (pointer: coarse) {
+    /* Aumentar área de toque */
+    .btn,
+    .patient-item,
+    .tag {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Remover hover effects */
+    .patient-item:hover {
+        transform: none;
+    }
+    
+    .tag:hover {
+        transform: none;
+    }
+    
+    /* Melhor feedback visual no tap */
+    .btn:active {
+        opacity: 0.8;
+    }
+    
+    .patient-item:active {
+        opacity: 0.9;
+    }
+}

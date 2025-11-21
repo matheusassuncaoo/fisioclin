@@ -25,8 +25,13 @@ public class PacienteController {
     
     @GetMapping("/ativos")
     public ResponseEntity<List<Paciente>> listarAtivos() {
-        List<Paciente> pacientes = pacienteService.listarAtivos();
-        return ResponseEntity.ok(pacientes);
+        try {
+            List<Paciente> pacientes = pacienteService.listarAtivos();
+            return ResponseEntity.ok(pacientes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
     
     @GetMapping("/{id}")
@@ -39,13 +44,6 @@ public class PacienteController {
     @GetMapping("/rg/{rg}")
     public ResponseEntity<Paciente> buscarPorRg(@PathVariable String rg) {
         return pacienteService.buscarPorRg(rg)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
-    }
-    
-    @GetMapping("/pessoa/{idPessoaFis}")
-    public ResponseEntity<Paciente> buscarPorIdPessoaFis(@PathVariable Integer idPessoaFis) {
-        return pacienteService.buscarPorIdPessoaFis(idPessoaFis)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }

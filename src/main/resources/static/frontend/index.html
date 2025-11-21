@@ -1,304 +1,257 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FisioClin - Evolução de Pacientes</title>
-    <link rel="stylesheet" href="Assets/css/styles.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Sistema de Gestão para Clínica de Fisioterapia" />
+    <title>FisioClin - Sistema de Gestão</title>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="Assets/css/global.css" />
+    <link rel="stylesheet" href="Assets/css/styles.css" />
+    <link rel="stylesheet" href="Assets/css/responsive.css" />
+
+    <!-- Icons -->
     <script src="https://unpkg.com/feather-icons"></script>
+
+    <!-- Charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-</head>
-<body>
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-content">
-                <div>
-                    <h1>Evolução de Pacientes</h1>
-                    <p>Fisioterapia baseada em evidências</p>
-                </div>
-                <div class="quick-stats">
-                    <div class="stat-mini">
-                        <i data-feather="users"></i>
-                        <span id="totalPacientes">-</span>
-                    </div>
-                    <div class="stat-mini">
-                        <i data-feather="activity"></i>
-                        <span id="atendimentosHoje">-</span>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <!-- Mensagens -->
-        <div id="message" class="message"></div>
-
-        <!-- Loading -->
-        <div id="loading" class="loading">
-            <div class="spinner"></div>
-            <p>Carregando...</p>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar: Menu de Navegação -->
+      <aside class="sidebar">
+        <div class="brand">
+          <i data-feather="activity"></i>
+          <span>FisioClin</span>
         </div>
 
-        <!-- Busca Avançada de Paciente -->
-        <section class="search-section">
-            <h2>Busca Rápida</h2>
-            <div class="search-advanced">
-                <div class="search-input-wrapper">
-                    <i data-feather="search"></i>
-                    <input 
-                        type="text" 
-                        id="searchInput" 
-                        placeholder="Digite nome, CPF ou ID do paciente..."
-                        autocomplete="off"
-                    >
-                    <div id="searchResults" class="search-results hidden"></div>
-                </div>
-                <button id="searchBtn" class="btn btn-primary">
-                    <i data-feather="search"></i>
-                    Buscar
-                </button>
+        <nav class="nav-menu">
+          <a href="#" class="nav-item active" data-page="pacientes">
+            <i data-feather="users"></i>
+            <span>Pacientes</span>
+          </a>
+          <a href="#" class="nav-item" data-page="anamnese">
+            <i data-feather="clipboard"></i>
+            <span>Anamnese</span>
+          </a>
+          <a href="#" class="nav-item" data-page="procedimentos">
+            <i data-feather="briefcase"></i>
+            <span>Procedimentos</span>
+          </a>
+          <a href="#" class="nav-item" data-page="relatorios">
+            <i data-feather="bar-chart-2"></i>
+            <span>Relatórios</span>
+          </a>
+          <a href="#" class="nav-item" data-page="configuracoes">
+            <i data-feather="settings"></i>
+            <span>Configurações</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="user-info">
+            <i data-feather="user"></i>
+            <div>
+              <div class="user-name">Admin</div>
+              <div class="user-role">Administrador</div>
             </div>
-        </section>
+          </div>
+        </div>
+      </aside>
 
-        <!-- Dashboard do Paciente -->
-        <section id="patientDashboard" class="patient-dashboard">
-            <!-- Cabeçalho do Paciente -->
-            <div id="patientHeader" class="patient-header-card">
-                <!-- Preenchido dinamicamente -->
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay hidden">
+          <div class="spinner"></div>
+        </div>
+
+        <!-- PAGE: Pacientes -->
+        <div id="pagePacientes" class="page">
+          <!-- Header da Página -->
+          <div class="page-header">
+            <div>
+              <h1>Gerenciamento de Pacientes</h1>
+              <p class="subtitle">Busque, visualize e gerencie atendimentos</p>
             </div>
+            <button class="btn btn-primary" id="btnNovoPaciente">
+              <i data-feather="user-plus"></i> Novo Paciente
+            </button>
+          </div>
 
-            <!-- Métricas Visuais -->
-            <div id="metricsPanel" class="metrics-panel">
-                <div class="metric-card">
-                    <div class="metric-icon">
-                        <i data-feather="trending-up"></i>
-                    </div>
-                    <div class="metric-content">
-                        <span class="metric-label">Total de Sessões</span>
-                        <span class="metric-value" id="totalSessoes">0</span>
-                    </div>
-                </div>
-
-                <div class="metric-card">
-                    <div class="metric-icon">
-                        <i data-feather="calendar"></i>
-                    </div>
-                    <div class="metric-content">
-                        <span class="metric-label">Última Sessão</span>
-                        <span class="metric-value" id="ultimaSessao">-</span>
-                    </div>
-                </div>
-
-                <div class="metric-card">
-                    <div class="metric-icon">
-                        <i data-feather="clock"></i>
-                    </div>
-                    <div class="metric-content">
-                        <span class="metric-label">Dias em Tratamento</span>
-                        <span class="metric-value" id="diasTratamento">0</span>
-                    </div>
-                </div>
-
-                <div class="metric-card">
-                    <div class="metric-icon">
-                        <i data-feather="bar-chart-2"></i>
-                    </div>
-                    <div class="metric-content">
-                        <span class="metric-label">Frequência Semanal</span>
-                        <span class="metric-value" id="frequenciaSemanal">-</span>
-                    </div>
-                </div>
+          <!-- Barra de Busca e Filtros -->
+          <div class="search-bar">
+            <div class="search-input-wrapper">
+              <i data-feather="search"></i>
+              <input type="text" id="searchPaciente" placeholder="Buscar por nome, RG ou ID..." />
             </div>
-
-            <!-- Gráfico de Progresso -->
-            <div id="progressChart" class="chart-container">
-                <h3>Evolução Temporal</h3>
-                <canvas id="evolutionChart"></canvas>
+            <div class="filters">
+              <select id="filterStatus">
+                <option value="">Todos os status</option>
+                <option value="true" selected>Ativos</option>
+                <option value="false">Inativos</option>
+              </select>
             </div>
+          </div>
 
-            <!-- Análise de Palavras-chave -->
-            <div id="keywordsPanel" class="keywords-panel">
-                <h3>Termos Mais Frequentes nas Evoluções</h3>
-                <div id="keywordsTags" class="keywords-tags"></div>
-            </div>
-        </section>
+          <!-- Tabela de Pacientes -->
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nome</th>
+                  <th>RG</th>
+                  <th>Estado RG</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="pacientesTableBody">
+                <tr class="loading-row">
+                  <td colspan="6" style="text-align: center; padding: 2rem;">
+                    <div class="spinner" style="margin: 0 auto;"></div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-        <!-- Formulário SOAP Otimizado -->
-        <section id="evolutionForm" class="evolution-form">
-            <div class="soap-header">
-                <h3>Registro de Evolução - Método SOAP</h3>
-                <div class="soap-tabs">
-                    <button class="soap-tab active" data-tab="subjetivo">S - Subjetivo</button>
-                    <button class="soap-tab" data-tab="objetivo">O - Objetivo</button>
-                    <button class="soap-tab" data-tab="avaliacao">A - Avaliação</button>
-                    <button class="soap-tab" data-tab="plano">P - Plano</button>
+        <!-- PAGE: Anamnese (placeholder) -->
+        <div id="pageAnamnese" class="page hidden">
+          <div class="page-header">
+            <h1>Anamnese</h1>
+          </div>
+          <div class="empty-state">
+            <i data-feather="clipboard"></i>
+            <h2>Em desenvolvimento</h2>
+            <p>Módulo de anamnese será implementado em breve</p>
+          </div>
+        </div>
+
+        <!-- PAGE: Procedimentos (placeholder) -->
+        <div id="pageProcedimentos" class="page hidden">
+          <div class="page-header">
+            <h1>Procedimentos</h1>
+          </div>
+          <div class="empty-state">
+            <i data-feather="briefcase"></i>
+            <h2>Em desenvolvimento</h2>
+            <p>Módulo de procedimentos será implementado em breve</p>
+          </div>
+        </div>
+
+        <!-- PAGE: Relatórios (placeholder) -->
+        <div id="pageRelatorios" class="page hidden">
+          <div class="page-header">
+            <h1>Relatórios</h1>
+          </div>
+          <div class="empty-state">
+            <i data-feather="bar-chart-2"></i>
+            <h2>Em desenvolvimento</h2>
+            <p>Módulo de relatórios será implementado em breve</p>
+          </div>
+        </div>
+
+        <!-- PAGE: Configurações (placeholder) -->
+        <div id="pageConfiguracoes" class="page hidden">
+          <div class="page-header">
+            <h1>Configurações</h1>
+          </div>
+          <div class="empty-state">
+            <i data-feather="settings"></i>
+            <h2>Em desenvolvimento</h2>
+            <p>Módulo de configurações será implementado em breve</p>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Modal: Atendimento SOAP -->
+    <div id="modalAtendimento" class="modal hidden">
+      <div class="modal-overlay" id="modalOverlay"></div>
+      <div class="modal-content modal-lg">
+        <div class="modal-header">
+          <h2 id="modalTitle">Atendimento - Paciente</h2>
+          <button class="btn-icon" id="btnCloseModal">
+            <i data-feather="x"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <!-- Tabs -->
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="nova-evolucao">Nova Evolução</button>
+            <button class="tab-btn" data-tab="historico">Histórico</button>
+            <button class="tab-btn" data-tab="info">Informações</button>
+          </div>
+
+          <!-- Tab Content: Nova Evolução -->
+          <div id="tabNovaEvolucao" class="tab-content active">
+            <form id="evolutionForm">
+              <div class="form-grid">
+                <div class="field">
+                  <label>Data</label>
+                  <input type="date" id="inputDate" required />
                 </div>
-            </div>
-
-            <form id="evolutionFormElement">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="dataAtendi">Data *</label>
-                        <input type="date" id="dataAtendi" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="idProfissio">Profissional *</label>
-                        <input type="number" id="idProfissio" placeholder="ID" required min="1">
-                    </div>
-                    <div class="form-group">
-                        <label for="idProced">Procedimento *</label>
-                        <input type="number" id="idProced" placeholder="ID" required min="1">
-                    </div>
+                <div class="field">
+                  <label>Profissional (ID)</label>
+                  <input type="number" id="inputProf" placeholder="ID" required />
                 </div>
-
-                <!-- Conteúdo SOAP -->
-                <div class="soap-content">
-                    <!-- SUBJETIVO -->
-                    <div class="soap-panel active" data-panel="subjetivo">
-                        <h4>Queixa do Paciente</h4>
-                        <div class="quick-tags">
-                            <span class="tag-chip" data-tag="Sem dor em repouso">Sem dor em repouso</span>
-                            <span class="tag-chip" data-tag="Dor ao movimento">Dor ao movimento</span>
-                            <span class="tag-chip" data-tag="Edema">Edema</span>
-                            <span class="tag-chip" data-tag="Melhora significativa">Melhora</span>
-                            <span class="tag-chip" data-tag="Sem alterações">Sem alterações</span>
-                            <span class="tag-chip" data-tag="Piora do quadro">Piora</span>
-                        </div>
-                        <textarea 
-                            id="textoSubjetivo" 
-                            class="soap-textarea"
-                            placeholder="Ex: Paciente relata melhora da dor, consegue subir escadas sem dificuldade..."
-                        ></textarea>
-                    </div>
-
-                    <!-- OBJETIVO -->
-                    <div class="soap-panel" data-panel="objetivo">
-                        <h4>Observações Clínicas</h4>
-                        <div class="quick-tags">
-                            <span class="tag-chip" data-tag="TENS">TENS</span>
-                            <span class="tag-chip" data-tag="Ultrassom">Ultrassom</span>
-                            <span class="tag-chip" data-tag="Cinesioterapia">Cinesioterapia</span>
-                            <span class="tag-chip" data-tag="Terapia Manual">Terapia Manual</span>
-                            <span class="tag-chip" data-tag="Exercícios">Exercícios</span>
-                            <span class="tag-chip" data-tag="Alongamento">Alongamento</span>
-                        </div>
-                        <textarea 
-                            id="textoObjetivo" 
-                            class="soap-textarea"
-                            placeholder="Ex: Aplicado TENS 100Hz, 20min. Realizado exercícios de fortalecimento..."
-                        ></textarea>
-                    </div>
-
-                    <!-- AVALIAÇÃO -->
-                    <div class="soap-panel" data-panel="avaliacao">
-                        <h4>Análise Profissional</h4>
-                        <textarea 
-                            id="textoAvaliacao" 
-                            class="soap-textarea"
-                            placeholder="Ex: Paciente apresentou ganho de ADM de 10°. Resposta positiva ao tratamento..."
-                        ></textarea>
-                    </div>
-
-                    <!-- PLANO -->
-                    <div class="soap-panel" data-panel="plano">
-                        <h4>Próximos Passos</h4>
-                        <textarea 
-                            id="textoPlano" 
-                            class="soap-textarea"
-                            placeholder="Ex: Aumentar carga na próxima sessão. Reavaliar em 3 dias..."
-                        ></textarea>
-                    </div>
+                <div class="field">
+                  <label>Procedimento (ID)</label>
+                  <input type="number" id="inputProc" placeholder="ID" required />
                 </div>
+              </div>
 
-                <div class="form-actions">
-                    <button type="button" id="cancelBtn" class="btn btn-secondary">
-                        <i data-feather="x"></i>
-                        Cancelar
-                    </button>
-                    <button type="button" id="copyLastBtn" class="btn btn-secondary">
-                        <i data-feather="copy"></i>
-                        Copiar Última Sessão
-                    </button>
-                    <button type="submit" class="btn btn-primary">
-                        <i data-feather="save"></i>
-                        Salvar
-                    </button>
+              <div class="soap-inputs">
+                <div class="soap-field">
+                  <label class="s-label" title="Subjetivo">S</label>
+                  <textarea id="inputS" placeholder="Subjetivo: Queixa do paciente..."></textarea>
                 </div>
+                <div class="soap-field">
+                  <label class="o-label" title="Objetivo">O</label>
+                  <textarea id="inputO" placeholder="Objetivo: Conduta realizada..."></textarea>
+                </div>
+                <div class="soap-field">
+                  <label class="a-label" title="Avaliação">A</label>
+                  <textarea id="inputA" placeholder="Avaliação: Resposta ao tratamento..."></textarea>
+                </div>
+                <div class="soap-field">
+                  <label class="p-label" title="Plano">P</label>
+                  <textarea id="inputP" placeholder="Plano: Próximos passos..."></textarea>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block btn-lg">
+                <i data-feather="save"></i> Salvar Evolução
+              </button>
             </form>
-        </section>
+          </div>
 
-        <!-- Timeline Comparativa -->
-        <section id="timelineSection" class="timeline-section">
-            <div class="timeline-header">
-                <h3>Histórico Comparativo</h3>
-                <div class="timeline-controls">
-                    <button id="compareBtn" class="btn btn-secondary">
-                        <i data-feather="columns"></i>
-                        Modo Comparação
-                    </button>
-                    <button id="filterBtn" class="btn btn-primary">
-                        <i data-feather="filter"></i>
-                        Filtrar Período
-                    </button>
-                </div>
+          <!-- Tab Content: Histórico -->
+          <div id="tabHistorico" class="tab-content">
+            <div id="historicoList" class="historico-list">
+              <p>Carregando histórico...</p>
             </div>
+          </div>
 
-            <!-- Filtros (colapsável) -->
-            <div id="filterPanel" class="filter-panel hidden">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="dataInicio">De</label>
-                        <input type="date" id="dataInicio">
-                    </div>
-                    <div class="form-group">
-                        <label for="dataFim">Até</label>
-                        <input type="date" id="dataFim">
-                    </div>
-                    <div class="form-group" style="flex: 0;">
-                        <label style="visibility: hidden;">Aplicar</label>
-                        <button id="applyFilterBtn" class="btn btn-primary">Aplicar</button>
-                    </div>
-                    <div class="form-group" style="flex: 0;">
-                        <label style="visibility: hidden;">Limpar</label>
-                        <button id="clearFilterBtn" class="btn btn-secondary">Limpar</button>
-                    </div>
-                </div>
+          <!-- Tab Content: Informações -->
+          <div id="tabInfo" class="tab-content">
+            <div id="pacienteInfo" class="info-grid">
+              <p>Carregando informações...</p>
             </div>
-
-            <!-- Modo Comparação -->
-            <div id="comparePanel" class="compare-panel hidden">
-                <div class="compare-selector">
-                    <div class="form-group">
-                        <label>Sessão A (Base)</label>
-                        <select id="compareA"></select>
-                    </div>
-                    <div class="compare-vs">VS</div>
-                    <div class="form-group">
-                        <label>Sessão B (Atual)</label>
-                        <select id="compareB"></select>
-                    </div>
-                    <button id="runCompareBtn" class="btn btn-primary">
-                        <i data-feather="eye"></i>
-                        Comparar
-                    </button>
-                </div>
-                <div id="compareResult" class="compare-result"></div>
-            </div>
-
-            <!-- Timeline -->
-            <div id="timeline" class="timeline">
-                <div class="empty-state">
-                    Selecione um paciente para visualizar o histórico
-                </div>
-            </div>
-        </section>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Scripts -->
     <script src="Assets/js/apiManager.js"></script>
     <script src="Assets/js/indexManager.js"></script>
     <script>
-        feather.replace();
+      feather.replace();
     </script>
-</body>
+  </body>
 </html>

@@ -2,7 +2,6 @@ package com.br.fasipe.fisioclin.Models;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,10 +21,6 @@ public class Paciente {
     @Column(name = "IDPACIENTE")
     private Integer idPaciente;
     
-    @NotNull(message = "ID da pessoa física é obrigatório")
-    @Column(name = "ID_PESSOAFIS", nullable = false, unique = true)
-    private Integer idPessoaFis;
-    
     @NotBlank(message = "RG do paciente é obrigatório")
     @Size(max = 15, message = "RG deve ter no máximo 15 caracteres")
     @Column(name = "RGPACIENTE", nullable = false, unique = true, length = 15)
@@ -36,6 +31,6 @@ public class Paciente {
     private String estdoRgPac;
     
     @Builder.Default
-    @Column(name = "STATUSPAC", nullable = false)
+    @Column(name = "STATUSPAC", nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
     private Boolean statusPac = true;
 }
