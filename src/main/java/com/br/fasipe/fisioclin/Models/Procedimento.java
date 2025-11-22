@@ -1,9 +1,6 @@
 package com.br.fasipe.fisioclin.Models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,7 +14,11 @@ import java.math.BigDecimal;
 public class Procedimento {
     
     @Id
-    @Column(name = "CODPROCED", nullable = false, length = 8)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "IDPROCED")
+    private Integer idProced;
+    
+    @Column(name = "CODPROCED", nullable = false, unique = true, length = 8)
     private String codProced;
     
     @Column(name = "DESCRPROC", nullable = false, length = 250)

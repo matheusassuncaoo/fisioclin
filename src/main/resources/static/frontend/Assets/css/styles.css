@@ -731,45 +731,55 @@
    ============================================ */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
     margin-bottom: 1.5rem;
 }
 
 .stat-card {
-    background: linear-gradient(135deg, var(--primary-color), #4a7bc8);
-    color: white;
-    padding: 1.5rem;
+    background: white;
+    border: 2px solid #e5e5e5;
+    color: var(--text-dark);
+    padding: 1.75rem 1.5rem;
     border-radius: 12px;
     text-align: center;
-    box-shadow: 0 4px 12px rgba(51, 94, 158, 0.2);
-    transition: transform 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 140px;
 }
 
 .stat-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 6px 16px rgba(51, 94, 158, 0.3);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    border-color: var(--primary-color);
 }
 
 .stat-card i {
-    width: 32px;
-    height: 32px;
-    margin: 0 auto 0.5rem;
-    opacity: 0.9;
+    width: 36px;
+    height: 36px;
+    margin-bottom: 0.75rem;
+    color: var(--primary-color);
 }
 
 .stat-value {
-    font-size: 2rem;
+    font-size: 2.25rem;
     font-weight: 700;
-    margin: 0.25rem 0;
+    margin: 0.5rem 0;
+    line-height: 1;
+    color: var(--text-dark);
 }
 
 .stat-label {
-    font-size: 0.85rem;
-    opacity: 0.9;
-    font-weight: 500;
+    font-size: 0.813rem;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
+    margin-top: 0.5rem;
+    color: #666;
 }
 
 /* ============================================
@@ -777,7 +787,7 @@
    ============================================ */
 .chart-container {
     background: white;
-    padding: 1.5rem;
+    padding: 1.75rem;
     border-radius: 12px;
     border: 1px solid #e5e5e5;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -785,14 +795,24 @@
 }
 
 .chart-container h4 {
-    margin: 0 0 1rem 0;
+    margin: 0 0 1.5rem 0;
     color: var(--text-dark);
-    font-size: 1rem;
+    font-size: 1.125rem;
     font-weight: 600;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #f0f0f0;
 }
 
 .chart-container canvas {
-    max-height: 250px;
+    max-height: 300px;
+    width: 100% !important;
+}
+
+.chart-container p {
+    text-align: center;
+    color: #999;
+    padding: 3rem 1rem;
+    font-style: italic;
 }
 
 /* ============================================
@@ -800,7 +820,7 @@
    ============================================ */
 .info-card {
     background: white;
-    padding: 1.5rem;
+    padding: 1.75rem;
     border-radius: 12px;
     border: 1px solid #e5e5e5;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -808,30 +828,48 @@
 }
 
 .info-card h4 {
-    margin: 0 0 1rem 0;
+    margin: 0 0 1.25rem 0;
     color: var(--text-dark);
-    font-size: 1rem;
+    font-size: 1.125rem;
     font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.625rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #f0f0f0;
 }
 
 .info-card h4 i {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     color: var(--primary-color);
 }
 
 .info-card p {
-    margin: 0.5rem 0;
+    margin: 0.75rem 0;
     color: var(--text-color);
-    line-height: 1.6;
+    line-height: 1.7;
+    font-size: 0.938rem;
 }
 
 .info-card strong {
     color: var(--text-dark);
     font-weight: 600;
+    display: inline-block;
+    min-width: 120px;
+}
+
+#ultimaAnamneseContent {
+    margin-top: 1rem;
+}
+
+#ultimaAnamneseContent p {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    text-align: center;
+    color: #666;
+    font-style: italic;
 }
 
 /* ============================================
@@ -879,3 +917,59 @@
 .mb-1 { margin-bottom: 0.5rem; }
 .mb-2 { margin-bottom: 1rem; }
 .mb-3 { margin-bottom: 1.5rem; }
+
+/* ============================================
+   GRÁFICOS (CHARTS)
+   ============================================ */
+.chart-container {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+}
+
+.chart-container h4 {
+    margin-bottom: 1rem;
+    color: var(--text-color);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.chart-container canvas {
+    max-height: 400px;
+    width: 100% !important;
+}
+
+.charts-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.chart-small {
+    max-height: 250px !important;
+}
+
+.chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.chart-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.chart-legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+}

@@ -34,15 +34,21 @@ public class Anamnese {
     @Column(name = "DATAANAM", nullable = false)
     private LocalDateTime dataAnam;
     
+    @Column(name = "NOMERESP", length = 100)
+    private String nomeResp;
+    
+    @Column(name = "CPFRESP", length = 6)
+    private String cpfResp;
+    
     @Column(name = "AUTVISIB", nullable = false)
-    private Boolean autVisib;
+    private Integer autVisib; // tinyint(1)
     
     @Enumerated(EnumType.STRING)
     @Column(name = "STATUSANM", nullable = false)
     private StatusAnamnese statusAnm;
     
     @Column(name = "STATUSFUNC", nullable = false)
-    private Boolean statusFunc;
+    private Integer statusFunc; // tinyint(1)
     
     @Column(name = "OBSERVACOES", columnDefinition = "TEXT")
     private String observacoes;

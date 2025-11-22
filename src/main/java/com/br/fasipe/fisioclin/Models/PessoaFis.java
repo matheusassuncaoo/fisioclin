@@ -4,12 +4,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 
-/**
- * Entidade PESSOAFIS - Pessoas Físicas
- * Conforme dicionário de dados (dbanovo.csv)
- */
 @Entity
 @Table(name = "PESSOAFIS")
 @Data
@@ -22,21 +19,28 @@ public class PessoaFis {
     @Column(name = "IDPESSOAFIS")
     private Integer idPessoaFis;
     
-    @Column(name = "IDDOCUMENTO", nullable = false)
-    private Long idDocumento; // FK para DOCUMENTO (CPF 11 dígitos)
+    @Column(name = "ID_PESSOA", nullable = false, insertable = false, updatable = false)
+    private Integer idPessoa;
     
-    @Column(name = "ID_PESSOA", nullable = false, unique = true)
-    private Integer idPessoa; // FK para PESSOA
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ID_PESSOA", referencedColumnName = "IDPESSOA")
+    private Pessoa pessoa;
     
     @Enumerated(EnumType.STRING)
-    @Column(name = "SEXOPESSOA", nullable = false, length = 1)
+    @Column(name = "SEXOPESSOA", nullable = false)
     private Sexo sexoPessoa;
     
     @Column(name = "DATACRIACAO", nullable = false)
     private LocalDateTime dataCriacao;
     
+    @Column(name = "IDDOCUMENTO", nullable = false, insertable = false, updatable = false)
+    private BigInteger idDocumento;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "IDDOCUMENTO", referencedColumnName = "IDDOCUMENTO")
+    private Documento documento;
+    
     public enum Sexo {
-        M, // Masculino
-        F  // Feminino
+        M, F
     }
 }

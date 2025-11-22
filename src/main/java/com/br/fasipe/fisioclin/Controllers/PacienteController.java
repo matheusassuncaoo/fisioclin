@@ -5,8 +5,6 @@ import com.br.fasipe.fisioclin.Models.Paciente;
 import com.br.fasipe.fisioclin.Services.PacienteService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -131,7 +129,7 @@ public class PacienteController {
     
     @GetMapping("/{id}/ativo")
     public ResponseEntity<Boolean> verificarSeAtivo(@PathVariable Integer id) {
-        Boolean ativo = pacienteService.isPacienteAtivo(id);
+        Boolean ativo = pacienteService.verificarSeAtivo(id);
         return ResponseEntity.ok(ativo);
     }
     

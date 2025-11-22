@@ -4,20 +4,20 @@ import com.br.fasipe.fisioclin.Models.PessoaFis;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface PessoaFisRepository extends JpaRepository<PessoaFis, Integer> {
     
-    Optional<PessoaFis> findByCpfPessoa(String cpfPessoa);
-    
+    // Buscar por ID da pessoa (chave estrangeira)
     Optional<PessoaFis> findByIdPessoa(Integer idPessoa);
     
-    List<PessoaFis> findByNomePessoaContainingIgnoreCase(String nome);
+    // Buscar por documento
+    Optional<PessoaFis> findByIdDocumento(BigInteger idDocumento);
     
-    List<PessoaFis> findBySexoPessoa(String sexo);
-    
-    List<PessoaFis> findByDataNascPesBetween(LocalDate dataInicio, LocalDate dataFim);
+    // Buscar por sexo
+    List<PessoaFis> findBySexoPessoa(PessoaFis.Sexo sexoPessoa);
 }
+

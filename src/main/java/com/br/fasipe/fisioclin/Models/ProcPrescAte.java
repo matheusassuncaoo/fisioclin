@@ -29,5 +29,5 @@ public class ProcPrescAte {
     private Integer idProntu;
     
     @Column(name = "STATUSATE", nullable = false)
-    private Boolean statusAte = false;
+    private Integer statusAte = 0; // tinyint(1) - 0=pendente, 1=concluído
 }

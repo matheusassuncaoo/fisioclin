@@ -18,12 +18,14 @@ public interface ProcPrescAteRepository extends JpaRepository<ProcPrescAte, Inte
     List<ProcPrescAte> findByIdProntu(Integer idProntu);
     
     // Buscar atendimentos concluídos
+    @Query("SELECT ppa FROM ProcPrescAte ppa WHERE ppa.statusAte = 1")
     List<ProcPrescAte> findByStatusAteTrue();
     
     // Buscar atendimentos pendentes
+    @Query("SELECT ppa FROM ProcPrescAte ppa WHERE ppa.statusAte = 0")
     List<ProcPrescAte> findByStatusAteFalse();
     
     // Verificar se prescrição tem atendimentos pendentes
-    @Query("SELECT CASE WHEN COUNT(ppa) > 0 THEN true ELSE false END FROM ProcPrescAte ppa WHERE ppa.idProcPresc = :idProcPresc AND ppa.statusAte = false")
+    @Query("SELECT CASE WHEN COUNT(ppa) > 0 THEN true ELSE false END FROM ProcPrescAte ppa WHERE ppa.idProcPresc = :idProcPresc AND ppa.statusAte = 0")
     Boolean hasPendencias(@Param("idProcPresc") Integer idProcPresc);
 }

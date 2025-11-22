@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.math.BigInteger;
 
 @Entity
 @Table(name = "PACIENTE")
@@ -14,19 +15,24 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Paciente {
     
-    @Column(name = "ID_IDDOCUMENTO", nullable = false)
-    private Long idDocumento;
-    
     @Id
-    @Column(name = "RGPESSOA", nullable = false)
-    private Integer rgPessoa;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "IDPACIENTE")
+    private Integer idPaciente;
+
+    @Column(name = "RGPACIENTE", nullable = false, length = 15, unique = true)
+    private String rgPaciente;
+
+    @Column(name = "ESTDORGPAC", length = 2)
+    private String estdOrgPac;
+
+    @Column(name = "STATUSPAC", nullable = false)
+    private Integer statusPac; // tinyint(1): 0=inativo, 1=ativo
+
+    @Column(name = "IDDOCUMENTO", nullable = false, insertable = false, updatable = false)
+    private BigInteger idDocumento;
     
-    @Enumerated(EnumType.STRING)
-    @Column(name = "STATUSPESSOA", nullable = false)
-    private StatusPessoa statusPessoa;
-    
-    public enum StatusPessoa {
-        ATIVO,
-        INATIVO
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "IDDOCUMENTO", referencedColumnName = "IDDOCUMENTO")
+    private Documento documento;
 }

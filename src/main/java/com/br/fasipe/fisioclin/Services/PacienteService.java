@@ -2,24 +2,29 @@ package com.br.fasipe.fisioclin.Services;
 
 import com.br.fasipe.fisioclin.DTOs.PacienteComNomeDTO;
 import com.br.fasipe.fisioclin.Models.Paciente;
+import com.br.fasipe.fisioclin.Models.PessoaFis;
 import com.br.fasipe.fisioclin.Repositories.PacienteRepository;
+import com.br.fasipe.fisioclin.Repositories.PessoaFisRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigInteger;
-import java.sql.Date;
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Service seguindo padrão MVC
+ * A lógica de negócio fica aqui, não no Repository
+ */
 @Service
 public class PacienteService {
     
     @Autowired
     private PacienteRepository pacienteRepository;
+    
+    @Autowired
+    private PessoaFisRepository pessoaFisRepository;
     
     @Transactional(readOnly = true)
     public List<Paciente> listarTodos() {
@@ -28,115 +33,59 @@ public class PacienteService {
     
     @Transactional(readOnly = true)
     public List<Paciente> listarAtivos() {
-        return pacienteRepository.findByStatusPacTrue();
+        return pacienteRepository.findByStatusPac(1);
     }
     
     @Transactional(readOnly = true)
     public List<Paciente> listarInativos() {
-        return pacienteRepository.findByStatusPacFalse();
+        return pacienteRepository.findByStatusPac(0);
     }
     
     /**
-     * Lista todos os pacientes ativos com o nome da pessoa física
+     * Lista pacientes ativos com nome - LÓGICA NO SERVICE (padrão MVC)
      */
     @Transactional(readOnly = true)
     public List<PacienteComNomeDTO> listarAtivosComNome() {
-        List<Map<String, Object>> resultado = pacienteRepository.findAllPacientesComNomeAtivos();
-        return mapToPacienteComNomeDTO(resultado);
-    }
-    
-    /**
-     * Lista todos os pacientes inativos com o nome da pessoa física
-     */
-    @Transactional(readOnly = true)
-    public List<PacienteComNomeDTO> listarInativosComNome() {
-        List<Map<String, Object>> resultado = pacienteRepository.findAllPacientesComNomeInativos();
-        return mapToPacienteComNomeDTO(resultado);
-    }
-    
-    /**
-     * Lista todos os pacientes com o nome da pessoa física
-     */
-    @Transactional(readOnly = true)
-    public List<PacienteComNomeDTO> listarTodosComNome() {
-        List<Map<String, Object>> resultado = pacienteRepository.findAllPacientesComNome();
-        return mapToPacienteComNomeDTO(resultado);
-    }
-    
-    /**
-     * Busca um paciente por ID com o nome da pessoa física
-     */
-    @Transactional(readOnly = true)
-    public Optional<PacienteComNomeDTO> buscarPorIdComNome(Integer id) {
-        Optional<Map<String, Object>> resultado = pacienteRepository.findPacienteComNomeById(id);
-        return resultado.map(this::mapSingleToPacienteComNomeDTO);
-    }
-    
-    /**
-     * Converte Map do resultado SQL para DTO
-     */
-    private List<PacienteComNomeDTO> mapToPacienteComNomeDTO(List<Map<String, Object>> resultado) {
-        return resultado.stream()
-            .map(this::mapSingleToPacienteComNomeDTO)
+        List<Paciente> pacientes = pacienteRepository.findByStatusPac(1);
+        return pacientes.stream()
+            .map(this::converterParaDTO)
             .collect(Collectors.toList());
     }
     
     /**
-     * Converte um único Map do resultado SQL para DTO
+     * Lista pacientes inativos com nome
      */
-    private PacienteComNomeDTO mapSingleToPacienteComNomeDTO(Map<String, Object> row) {
-        PacienteComNomeDTO dto = new PacienteComNomeDTO();
-        
-        dto.setIdPaciente(getIntegerValue(row.get("idPaciente")));
-        dto.setIdPessoaFis(getIntegerValue(row.get("idPessoaFis")));
-        dto.setRgPaciente((String) row.get("rgPaciente"));
-        dto.setEstdoRgPac((String) row.get("estdoRgPac"));
-        dto.setStatusPac(getBooleanValue(row.get("statusPac")));
-        dto.setNomePessoa((String) row.get("nomePessoa"));
-        dto.setCpfPessoa((String) row.get("cpfPessoa"));
-        dto.setDataNascPes(getLocalDateValue(row.get("dataNascPes")));
-        dto.setSexoPessoa((String) row.get("sexoPessoa"));
-        
-        return dto;
+    @Transactional(readOnly = true)
+    public List<PacienteComNomeDTO> listarInativosComNome() {
+        List<Paciente> pacientes = pacienteRepository.findByStatusPac(0);
+        return pacientes.stream()
+            .map(this::converterParaDTO)
+            .collect(Collectors.toList());
     }
     
     /**
-     * Converte valor do banco para Integer
+     * Lista todos pacientes com nome
      */
-    private Integer getIntegerValue(Object value) {
-        if (value == null) return null;
-        if (value instanceof Integer) return (Integer) value;
-        if (value instanceof BigInteger) return ((BigInteger) value).intValue();
-        if (value instanceof Long) return ((Long) value).intValue();
-        return Integer.parseInt(value.toString());
-    }
-    
-    /**
-     * Converte valor do banco para Boolean
-     */
-    private Boolean getBooleanValue(Object value) {
-        if (value == null) return null;
-        if (value instanceof Boolean) return (Boolean) value;
-        if (value instanceof Number) return ((Number) value).intValue() != 0;
-        return Boolean.parseBoolean(value.toString());
-    }
-    
-    /**
-     * Converte valor do banco para LocalDate
-     */
-    private LocalDate getLocalDateValue(Object value) {
-        if (value == null) return null;
-        if (value instanceof LocalDate) return (LocalDate) value;
-        if (value instanceof Date) return ((Date) value).toLocalDate();
-        if (value instanceof java.util.Date) {
-            return new Date(((java.util.Date) value).getTime()).toLocalDate();
-        }
-        return LocalDate.parse(value.toString());
+    @Transactional(readOnly = true)
+    public List<PacienteComNomeDTO> listarTodosComNome() {
+        List<Paciente> pacientes = pacienteRepository.findAll();
+        return pacientes.stream()
+            .map(this::converterParaDTO)
+            .collect(Collectors.toList());
     }
     
     @Transactional(readOnly = true)
     public Optional<Paciente> buscarPorId(Integer id) {
         return pacienteRepository.findById(id);
+    }
+    
+    /**
+     * Busca paciente por ID com nome
+     */
+    @Transactional(readOnly = true)
+    public Optional<PacienteComNomeDTO> buscarPorIdComNome(Integer id) {
+        return pacienteRepository.findById(id)
+            .map(this::converterParaDTO);
     }
     
     @Transactional(readOnly = true)
@@ -146,49 +95,88 @@ public class PacienteService {
     
     @Transactional
     public Paciente salvar(Paciente paciente) {
-        // Validações
-        if (paciente.getRgPaciente() == null || paciente.getRgPaciente().trim().isEmpty()) {
-            throw new IllegalArgumentException("RG do paciente é obrigatório");
-        }
+        return pacienteRepository.save(paciente);
+    }
+    
+    @Transactional
+    public Paciente atualizar(Integer id, Paciente pacienteAtualizado) {
+        Paciente paciente = pacienteRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
         
-        // Verificar se RG já existe
-        if (paciente.getIdPaciente() == null) {
-            Optional<Paciente> existente = pacienteRepository.findByRgPaciente(paciente.getRgPaciente());
-            if (existente.isPresent()) {
-                throw new IllegalStateException("RG já cadastrado");
-            }
-        }
+        paciente.setRgPaciente(pacienteAtualizado.getRgPaciente());
+        paciente.setEstdOrgPac(pacienteAtualizado.getEstdOrgPac());
+        paciente.setStatusPac(pacienteAtualizado.getStatusPac());
+        paciente.setIdDocumento(pacienteAtualizado.getIdDocumento());
         
         return pacienteRepository.save(paciente);
     }
     
     @Transactional
-    public Paciente atualizar(Integer id, Paciente paciente) {
-        Optional<Paciente> existente = pacienteRepository.findById(id);
-        if (existente.isEmpty()) {
-            throw new IllegalArgumentException("Paciente não encontrado");
-        }
-        
-        paciente.setIdPaciente(id);
-        return pacienteRepository.save(paciente);
+    public void deletar(Integer id) {
+        pacienteRepository.deleteById(id);
     }
     
     @Transactional
     public void inativar(Integer id) {
         Paciente paciente = pacienteRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Paciente não encontrado"));
-        
-        paciente.setStatusPac(false);
+            .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+        paciente.setStatusPac(0); // 0 = inativo
         pacienteRepository.save(paciente);
     }
     
     @Transactional
     public void ativar(Integer id) {
         Paciente paciente = pacienteRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Paciente não encontrado"));
-        
-        paciente.setStatusPac(true);
+            .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+        paciente.setStatusPac(1); // 1 = ativo
         pacienteRepository.save(paciente);
+    }
+    
+    /**
+     * Método privado que faz a conversão de Paciente para DTO com nome
+     * GAMBIARRA: Preenche valores padrão quando dados estão faltando no banco
+     */
+    private PacienteComNomeDTO converterParaDTO(Paciente paciente) {
+        PacienteComNomeDTO dto = new PacienteComNomeDTO();
+
+        // Dados básicos do paciente
+        dto.setIdPaciente(paciente.getIdPaciente());
+        dto.setRgPaciente(paciente.getRgPaciente() != null ? paciente.getRgPaciente() : "SEM RG");
+        dto.setEstdoRgPac(paciente.getEstdOrgPac() != null ? paciente.getEstdOrgPac() : "SP");
+        dto.setStatusPac(paciente.getStatusPac() != null && paciente.getStatusPac() == 1);
+
+        // CPF vindo do IDDOCUMENTO (BigInteger)
+        dto.setCpfPessoa(
+            paciente.getIdDocumento() != null
+                ? paciente.getIdDocumento().toString()
+                : "00000000000"
+        );
+
+        // GAMBIARRA: Tenta buscar dados de PessoaFis, mas não quebra se não achar
+        try {
+            Optional<PessoaFis> pessoaFisOpt = pessoaFisRepository.findByIdDocumento(paciente.getIdDocumento());
+            if (pessoaFisOpt.isPresent()) {
+                PessoaFis pf = pessoaFisOpt.get();
+                dto.setSexoPessoa(pf.getSexoPessoa() != null ? pf.getSexoPessoa().name() : "M");
+                
+                // Tenta pegar nome da tabela Pessoa se existir relacionamento
+                if (pf.getPessoa() != null && pf.getPessoa().getNomePessoa() != null) {
+                    dto.setNomePessoa(pf.getPessoa().getNomePessoa());
+                } else {
+                    dto.setNomePessoa("Paciente #" + paciente.getIdPaciente());
+                }
+            } else {
+                // Valores padrão quando não encontra PessoaFis
+                dto.setSexoPessoa("M");
+                dto.setNomePessoa("Paciente #" + paciente.getIdPaciente());
+            }
+        } catch (Exception e) {
+            // Se der erro, usa valores padrão
+            dto.setSexoPessoa("M");
+            dto.setNomePessoa("Paciente #" + paciente.getIdPaciente());
+        }
+
+        return dto;
     }
     
     @Transactional(readOnly = true)
@@ -197,7 +185,7 @@ public class PacienteService {
     }
     
     @Transactional(readOnly = true)
-    public Boolean isPacienteAtivo(Integer id) {
+    public Boolean verificarSeAtivo(Integer id) {
         return pacienteRepository.isPacienteAtivo(id);
     }
 }

@@ -37,7 +37,7 @@ public interface ProntuarioRepository extends JpaRepository<Prontuario, Integer>
     Prontuario findUltimoProntuario(@Param("idPaciente") Integer idPaciente);
     
     // Prontuários visíveis ao paciente
-    @Query("SELECT p FROM Prontuario p WHERE p.idPaciente = :idPaciente AND p.autoPacVisu = true ORDER BY p.dataProced DESC")
+    @Query("SELECT p FROM Prontuario p WHERE p.idPaciente = :idPaciente AND p.autoPacVisu = 1 ORDER BY p.dataProced DESC")
     List<Prontuario> findProntuariosVisiveisPaciente(@Param("idPaciente") Integer idPaciente);
     
     // Contar prontuários do paciente

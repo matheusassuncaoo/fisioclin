@@ -264,7 +264,7 @@ public class PacienteDetalhesService {
         
         prontuario.setDescrProntu(descricao.toString());
         prontuario.setLinkProced(soapDTO.getLinkProced());
-        prontuario.setAutoPacVisu(soapDTO.getAutoPacVisu() != null ? soapDTO.getAutoPacVisu() : false);
+        prontuario.setAutoPacVisu(soapDTO.getAutoPacVisu() != null && soapDTO.getAutoPacVisu() ? 1 : 0);
         
         return prontuarioRepository.save(prontuario);
     }

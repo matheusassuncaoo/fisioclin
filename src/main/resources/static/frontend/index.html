@@ -119,15 +119,65 @@
           </div>
         </div>
 
-        <!-- PAGE: Anamnese (placeholder) -->
+        <!-- PAGE: Anamnese -->
         <div id="pageAnamnese" class="page hidden">
           <div class="page-header">
-            <h1>Anamnese</h1>
+            <div>
+              <h1>Anamnese</h1>
+              <p class="subtitle">Visualize e analise anamneses dos pacientes</p>
+            </div>
+            <button class="btn btn-primary" id="btnNovaAnamnese">
+              <i data-feather="plus"></i> Nova Anamnese
+            </button>
           </div>
-          <div class="empty-state">
-            <i data-feather="clipboard"></i>
-            <h2>Em desenvolvimento</h2>
-            <p>Módulo de anamnese será implementado em breve</p>
+
+          <!-- Filtros -->
+          <div class="search-bar mb-3">
+            <div class="search-input-wrapper">
+              <i data-feather="search"></i>
+              <input type="text" id="searchAnamnese" placeholder="Buscar paciente..." />
+            </div>
+            <div class="filters">
+              <select id="filterStatusAnamnese">
+                <option value="">Todos os status</option>
+                <option value="ABERTA" selected>Abertas</option>
+                <option value="CONCLUIDA">Concluídas</option>
+                <option value="CANCELADA">Canceladas</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Gráficos de Dashboard -->
+          <div class="charts-row mb-3" style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+            <div class="chart-container">
+              <h4>Atendimentos por Mês</h4>
+              <canvas id="chartAtendimentosMes" style="height: 300px;"></canvas>
+            </div>
+            <div class="chart-container">
+              <h4>Status das Anamneses</h4>
+              <canvas id="chartStatusAnamnese" style="height: 300px;"></canvas>
+            </div>
+          </div>
+
+          <!-- Lista de Anamneses -->
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Paciente</th>
+                  <th>Data</th>
+                  <th>Profissional</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="anamneseTableBody">
+                <tr>
+                  <td colspan="6" class="text-center">Carregando...</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -288,6 +338,7 @@
 
     <!-- Scripts -->
     <script src="Assets/js/apiManager.js"></script>
+    <script src="Assets/js/charts.js"></script>
     <script src="Assets/js/pacienteDetalhes.js"></script>
     <script src="Assets/js/indexManager.js"></script>
     <script>

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.math.BigInteger;
 
 @Entity
 @Table(name = "PROFISSIONAL")
@@ -14,28 +15,27 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Profissional {
     
-    @Column(name = "ID_IDDOCUMENTO", nullable = false)
-    private Long idDocumento;
-    
-    @Column(name = "SUPERVISORDOC")
-    private Integer supervisorDoc;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "IDPROFISSIO")
+    private Integer idProfissio;
     
     @Enumerated(EnumType.STRING)
-    @Column(name = "TIPOPROFI", nullable = false, length = 1)
+    @Column(name = "TIPOPROFI", nullable = false)
     private TipoProfi tipoProfi;
     
     @Column(name = "ID_SUPPROFI")
     private Integer idSupProfi;
     
     @Enumerated(EnumType.STRING)
-    @Column(name = "STATUSPROFI", nullable = false, length = 1)
+    @Column(name = "STATUSPROFI", nullable = false)
     private StatusProfi statusProfi;
     
-    @Column(name = "IDCONSEPROFI")
+    @Column(name = "ID_CONSEPROFI")
     private Integer idConseProfi;
     
-    @Column(name = "ESPECIALIDADE", nullable = false, length = 100)
-    private String especialidade;
+    @Column(name = "IDDOCUMENTO", nullable = false)
+    private BigInteger idDocumento;
     
     public enum TipoProfi {
         _1, // administrativo

@@ -30,6 +30,6 @@ public interface AnamneseRepository extends JpaRepository<Anamnese, Integer> {
     Anamnese findUltimaAnamnese(@Param("idPaciente") Integer idPaciente);
     
     // Anamneses funcionais ativas
-    @Query("SELECT a FROM Anamnese a WHERE a.statusFunc = true ORDER BY a.dataAnam DESC")
+    @Query("SELECT a FROM Anamnese a WHERE a.statusFunc = 1 ORDER BY a.dataAnam DESC")
     List<Anamnese> findAnamnesesFuncionais();
 }

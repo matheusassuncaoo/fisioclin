@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,22 +24,6 @@ public class PessoaFisService {
         return pessoaFisRepository.findById(id);
     }
 
-    public Optional<PessoaFis> buscarPorCpf(String cpf) {
-        return pessoaFisRepository.findByCpfPessoa(cpf);
-    }
-
-    public List<PessoaFis> buscarPorNome(String nome) {
-        return pessoaFisRepository.findByNomePessoaContainingIgnoreCase(nome);
-    }
-
-    public List<PessoaFis> buscarPorSexo(String sexo) {
-        return pessoaFisRepository.findBySexoPessoa(sexo);
-    }
-
-    public List<PessoaFis> buscarPorDataNascimento(LocalDate dataInicio, LocalDate dataFim) {
-        return pessoaFisRepository.findByDataNascPesBetween(dataInicio, dataFim);
-    }
-
     public PessoaFis salvar(PessoaFis pessoaFis) {
         return pessoaFisRepository.save(pessoaFis);
     }
@@ -49,10 +32,9 @@ public class PessoaFisService {
         return pessoaFisRepository.findById(id)
                 .map(pessoaFis -> {
                     pessoaFis.setIdPessoa(pessoaFisAtualizada.getIdPessoa());
-                    pessoaFis.setCpfPessoa(pessoaFisAtualizada.getCpfPessoa());
-                    pessoaFis.setNomePessoa(pessoaFisAtualizada.getNomePessoa());
-                    pessoaFis.setDataNascPes(pessoaFisAtualizada.getDataNascPes());
+                    pessoaFis.setIdDocumento(pessoaFisAtualizada.getIdDocumento());
                     pessoaFis.setSexoPessoa(pessoaFisAtualizada.getSexoPessoa());
+                    pessoaFis.setDataCriacao(pessoaFisAtualizada.getDataCriacao());
                     return pessoaFisRepository.save(pessoaFis);
                 })
                 .orElseThrow(() -> new RuntimeException("PessoaFis não encontrada com ID: " + id));

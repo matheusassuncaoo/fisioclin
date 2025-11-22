@@ -4,15 +4,11 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 
-/**
- * Entidade PESSOAJUR - Pessoas Jurídicas
- * Conforme dicionário de dados (dbanovo.csv)
- */
 @Entity
-@Table(name = "PESSOAJUR",
-       tablespace = "TS_AGENDA")
+@Table(name = "PESSOAJUR")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,8 +19,8 @@ public class PessoaJur {
     @Column(name = "IDPESSOAJUR")
     private Integer idPessoaJur;
     
-    @Column(name = "IDDOCUMENTO", nullable = false, unique = true)
-    private Long idDocumento; // FK para DOCUMENTO (CNPJ 14 dígitos)
+    @Column(name = "ID_PESSOA")
+    private Integer idPessoa;
     
     @Column(name = "RAZSOCIAL", nullable = false, length = 100)
     private String razSocial;
@@ -37,4 +33,7 @@ public class PessoaJur {
     
     @Column(name = "DATACRIACAO", nullable = false)
     private LocalDateTime dataCriacao;
+    
+    @Column(name = "IDDOCUMENTO", nullable = false, unique = true)
+    private BigInteger idDocumento;
 }

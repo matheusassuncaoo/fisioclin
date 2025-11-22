@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.math.BigInteger;
 
 /**
  * Entidade DOCUMENTO - CPF ou CNPJ
@@ -16,6 +17,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Documento {
 
-     @Column(name = "DOCUMENTO", nullable = false, unique = true)
-     private BigInteger documento; // CPF (11 dígitos) ou CNPJ (14 dígitos)
+    @Id
+    @Column(name = "IDDOCUMENTO", nullable = false, unique = true)
+    private BigInteger idDocumento; // CPF (11 dígitos) ou CNPJ (14 dígitos)
 }

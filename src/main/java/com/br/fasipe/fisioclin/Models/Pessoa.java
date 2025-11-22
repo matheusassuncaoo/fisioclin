@@ -21,8 +21,12 @@ public class Pessoa {
     @Column(name = "IDPESSOA")
     private Integer idPessoa;
     
-    @Column(name = "ID_DOCUMENTO", nullable = false)
+    @Column(name = "ID_DOCUMENTO", nullable = false, insertable = false, updatable = false)
     private Long idDocumento; // FK para DOCUMENTO
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ID_DOCUMENTO", referencedColumnName = "IDDOCUMENTO")
+    private Documento documento;
     
     @Enumerated(EnumType.STRING)
     @Column(name = "TIPOPESSOA", nullable = false, length = 1)
