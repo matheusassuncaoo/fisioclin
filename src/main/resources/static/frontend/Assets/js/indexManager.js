@@ -106,7 +106,7 @@ class FisioclinApp {
             } else if (filterStatus === 'false') {
                 pacientes = await api.listarPacientesInativos();
             } else {
-                pacientes = await api.listarTodosPacientes();
+                pacientes = await api.listarPacientes();
             }
             
             this.allPacientes = pacientes;
