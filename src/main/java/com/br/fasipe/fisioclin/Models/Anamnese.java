@@ -34,12 +34,6 @@ public class Anamnese {
     @Column(name = "DATAANAM", nullable = false)
     private LocalDateTime dataAnam;
     
-    @Column(name = "NOMERESP", length = 100)
-    private String nomeResp;
-    
-    @Column(name = "CPFRESP", length = 11)
-    private String cpfResp;
-    
     @Column(name = "AUTVISIB", nullable = false)
     private Boolean autVisib;
     

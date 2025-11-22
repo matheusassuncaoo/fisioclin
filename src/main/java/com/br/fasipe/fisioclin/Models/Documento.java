@@ -10,14 +10,12 @@ import lombok.NoArgsConstructor;
  * Conforme dicionário de dados (dbanovo.csv)
  */
 @Entity
-@Table(name = "DOCUMENTO", 
-       tablespace = "TS_DOCUMENTO")
+@Table(name = "DOCUMENTO")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Documento {
-    
-    @Id
-    @Column(name = "IDDOCUMENTO", nullable = false)
-    private Long idDocumento; // BIGINT 14 - CPF (11) ou CNPJ (14)
+
+     @Column(name = "DOCUMENTO", nullable = false, unique = true)
+     private BigInteger documento; // CPF (11 dígitos) ou CNPJ (14 dígitos)
 }

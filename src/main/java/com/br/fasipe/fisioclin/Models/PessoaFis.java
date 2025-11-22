@@ -1,21 +1,18 @@
 package com.br.fasipe.fisioclin.Models;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * Entidade PESSOAFIS - Pessoas Físicas
+ * Conforme dicionário de dados (dbanovo.csv)
+ */
 @Entity
 @Table(name = "PESSOAFIS")
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class PessoaFis {
@@ -25,29 +22,21 @@ public class PessoaFis {
     @Column(name = "IDPESSOAFIS")
     private Integer idPessoaFis;
     
-    @NotNull(message = "ID da pessoa é obrigatório")
+    @Column(name = "IDDOCUMENTO", nullable = false)
+    private Long idDocumento; // FK para DOCUMENTO (CPF 11 dígitos)
+    
     @Column(name = "ID_PESSOA", nullable = false, unique = true)
-    private Integer idPessoa;
+    private Integer idPessoa; // FK para PESSOA
     
-    @NotBlank(message = "CPF é obrigatório")
-    @Size(min = 11, max = 11, message = "CPF deve ter 11 caracteres")
-    @Column(name = "CPFPESSOA", nullable = false, unique = true, length = 11)
-    private String cpfPessoa;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "SEXOPESSOA", nullable = false, length = 1)
+    private Sexo sexoPessoa;
     
-    @NotBlank(message = "Nome é obrigatório")
-    @Size(max = 100, message = "Nome deve ter no máximo 100 caracteres")
-    @Column(name = "NOMEPESSOA", nullable = false, length = 100)
-    private String nomePessoa;
+    @Column(name = "DATACRIACAO", nullable = false)
+    private LocalDateTime dataCriacao;
     
-    @NotNull(message = "Data de nascimento é obrigatória")
-    @Column(name = "DATANASCPES", nullable = false)
-    private LocalDate dataNascPes;
-    
-    @NotBlank(message = "Sexo é obrigatório")
-    @Column(name = "SEXOPESSOA", nullable = false, columnDefinition = "ENUM('M','F')")
-    private String sexoPessoa;
-    
-    @Builder.Default
-    @Column(name = "DATACRIACAO", nullable = false, columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime dataCriacao = LocalDateTime.now();
+    public enum Sexo {
+        M, // Masculino
+        F  // Feminino
+    }
 }
