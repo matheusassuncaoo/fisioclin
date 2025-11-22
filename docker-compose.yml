@@ -1,0 +1,65 @@
+# ===============================
+# DOCKER COMPOSE - DESENVOLVIMENTO
+# ===============================
+version: '3.8'
+
+services:
+  # Banco de dados MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: fisioclin-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: fasiclin_db
+      MYSQL_USER: fisioclin
+      MYSQL_PASSWORD: fisioclin123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # Se tiver scripts SQL de inicialização, descomente:
+      # - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - fisioclin-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Aplicação Spring Boot
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fisioclin-app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DB_URL: jdbc:mysql://mysql:3306/fasiclin_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      DB_USERNAME: fisioclin
+      DB_PASSWORD: fisioclin123
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: adminfisioclin
+    ports:
+      - "8080:8080"
+    networks:
+      - fisioclin-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  fisioclin-network:
+    driver: bridge

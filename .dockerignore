@@ -1,0 +1,16 @@
+# Arquivos sensíveis e ambientes
+.env
+.env.local
+.env.production
+.env.homolog
+*.key
+*.pem
+*.p12
+
+# Dados locais
+/data
+/logs
+*.log
+
+# Docker volumes
+/mysql_data
