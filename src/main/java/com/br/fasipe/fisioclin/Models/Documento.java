@@ -18,6 +18,6 @@ import java.math.BigInteger;
 public class Documento {
 
     @Id
-    @Column(name = "IDDOCUMENTO", nullable = false, unique = true)
+    @Column(name = "DOCUMENTO", nullable = false, unique = true)
     private BigInteger idDocumento; // CPF (11 dígitos) ou CNPJ (14 dígitos)
 }

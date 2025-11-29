@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/prontuarios")
-@CrossOrigin(origins = "*")
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Prontuários", description = "API para gerenciamento de prontuários")
 public class ProntuarioController {
     
     @Autowired

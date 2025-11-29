@@ -17,7 +17,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/pacientes")
-@CrossOrigin(origins = "*")
 @Tag(name = "Pacientes", description = "API para gerenciamento de pacientes")
 public class PacienteController {
     

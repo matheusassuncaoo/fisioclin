@@ -1,0 +1,51 @@
+# ===============================
+# RENDER BLUEPRINT - FisioClin
+# ===============================
+# Deploy: https://dashboard.render.com/blueprints
+
+services:
+  - type: web
+    name: fisioclin
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    region: oregon # ou frankfurt para menor latência no Brasil
+    plan: free # free, starter, standard, pro
+    
+    # Health Check
+    healthCheckPath: /api/pacientes
+    
+    # Variáveis de ambiente
+    envVars:
+      # Perfil Spring
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      
+      # Banco de dados (Fasitech)
+      - key: DB_URL
+        value: jdbc:mysql://160.20.22.99:3360/fasiclin
+      - key: DB_USERNAME
+        sync: false # Define manualmente no dashboard
+      - key: DB_PASSWORD
+        sync: false # Define manualmente no dashboard
+      
+      # CORS - Permitir frontend do Render
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://fisioclin.onrender.com,http://localhost:5500,http://127.0.0.1:5500
+      
+      # Java opts para free tier
+      - key: JAVA_OPTS
+        value: -Xmx256m -Xms128m
+      
+      # Admin (opcional - para Spring Security básico)
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        generateValue: true
+      
+      # URL da app
+      - key: APP_URL
+        fromService:
+          type: web
+          name: fisioclin
+          property: host
+

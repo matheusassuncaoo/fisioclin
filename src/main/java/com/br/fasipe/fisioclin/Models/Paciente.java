@@ -29,10 +29,10 @@ public class Paciente {
     @Column(name = "STATUSPAC", nullable = false)
     private Integer statusPac; // tinyint(1): 0=inativo, 1=ativo
 
-    @Column(name = "IDDOCUMENTO", nullable = false, insertable = false, updatable = false)
+    @Column(name = "ID_DOCUMENTO", insertable = false, updatable = false)
     private BigInteger idDocumento;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "IDDOCUMENTO", referencedColumnName = "IDDOCUMENTO")
+    @JoinColumn(name = "ID_DOCUMENTO", referencedColumnName = "DOCUMENTO")
     private Documento documento;
 }

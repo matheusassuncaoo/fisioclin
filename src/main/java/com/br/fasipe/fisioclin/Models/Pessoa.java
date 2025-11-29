@@ -25,7 +25,7 @@ public class Pessoa {
     private Long idDocumento; // FK para DOCUMENTO
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ID_DOCUMENTO", referencedColumnName = "IDDOCUMENTO")
+    @JoinColumn(name = "ID_DOCUMENTO", referencedColumnName = "DOCUMENTO")
     private Documento documento;
     
     @Enumerated(EnumType.STRING)

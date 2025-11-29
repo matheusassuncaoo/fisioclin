@@ -1,46 +1,60 @@
-# ===============================
-# MULTI-STAGE BUILD
-# ===============================
+# ============================================
+# Dockerfile para Render.com - FisioClin
+# Java 24 - Amazon Corretto
+# ============================================
 
-# Stage 1: Build da aplicação
-FROM maven:3.9-eclipse-temurin-21 AS builder
+# Build stage - Amazon Corretto 24 com Maven
+FROM amazoncorretto:24-al2023 AS build
+
+# Instalar Maven
+RUN yum install -y maven && yum clean all
 
 WORKDIR /app
 
-# Copia apenas o pom.xml primeiro (cache de dependências)
+# Copiar arquivos de configuração do Maven primeiro (para cache de layers)
 COPY pom.xml .
+COPY mvnw .
+COPY .mvn .mvn
+
+# Download dependencies (cached layer)
 RUN mvn dependency:go-offline -B
 
-# Copia o código fonte
+# Copiar código fonte
 COPY src ./src
 
-# Build da aplicação (pula testes para build mais rápido)
-RUN mvn clean package -DskipTests -B
+# Build da aplicação
+RUN mvn clean package -DskipTests -Dspring.profiles.active=prod
 
-# ===============================
-# Stage 2: Imagem de produção
-# ===============================
-FROM eclipse-temurin:21-jre-alpine
+# Runtime stage - Amazon Corretto 24 Alpine (mais leve)
+FROM amazoncorretto:24-alpine
 
 WORKDIR /app
 
-# Cria usuário não-root por segurança
-RUN addgroup -S spring && adduser -S spring -G spring
+# Instalar wget para healthcheck e criar usuário não-root
+RUN apk add --no-cache wget curl && \
+    addgroup -S spring && adduser -S spring -G spring
+
+# Copiar JAR do build stage
+COPY --from=build /app/target/*.jar app.jar
+
+# Mudar ownership do jar
+RUN chown spring:spring app.jar
+
+# Usar usuário não-root
 USER spring:spring
 
-# Copia apenas o JAR compilado do stage anterior
-COPY --from=builder /app/target/*.jar app.jar
-
-# Variáveis de ambiente padrão
-ENV SPRING_PROFILES_ACTIVE=prod
-ENV JAVA_OPTS="-Xmx512m -Xms256m"
-
-# Expõe a porta
+# Render usa porta 8080 ou variável PORT
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+# Variáveis de ambiente para Render
+ENV SPRING_PROFILES_ACTIVE=prod
+ENV SERVER_PORT=8080
+ENV JAVA_OPTS="-Xmx512m -Xms256m -XX:+UseG1GC -XX:MaxGCPauseMillis=100"
+ENV TZ=America/Sao_Paulo
 
-# Comando para rodar a aplicação
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/pacientes || exit 1
+
+# Executar aplicação - Render passa a porta via variável PORT
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dserver.port=${PORT:-8080} -Djava.security.egd=file:/dev/./urandom -jar app.jar"]

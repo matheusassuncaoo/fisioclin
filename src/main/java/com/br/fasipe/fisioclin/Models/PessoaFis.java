@@ -33,11 +33,11 @@ public class PessoaFis {
     @Column(name = "DATACRIACAO", nullable = false)
     private LocalDateTime dataCriacao;
     
-    @Column(name = "IDDOCUMENTO", nullable = false, insertable = false, updatable = false)
+    @Column(name = "ID_DOCUMENTO", insertable = false, updatable = false)
     private BigInteger idDocumento;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "IDDOCUMENTO", referencedColumnName = "IDDOCUMENTO")
+    @JoinColumn(name = "ID_DOCUMENTO", referencedColumnName = "DOCUMENTO")
     private Documento documento;
     
     public enum Sexo {

@@ -34,7 +34,7 @@ public class Profissional {
     @Column(name = "ID_CONSEPROFI")
     private Integer idConseProfi;
     
-    @Column(name = "IDDOCUMENTO", nullable = false)
+    @Column(name = "ID_DOCUMENTO")
     private BigInteger idDocumento;
     
     public enum TipoProfi {

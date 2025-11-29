@@ -3,9 +3,11 @@ package com.br.fasipe.fisioclin.Services;
 import com.br.fasipe.fisioclin.Models.AtendiFisio;
 import com.br.fasipe.fisioclin.Models.Procedimento;
 import com.br.fasipe.fisioclin.DTOs.AtendimentoSOAPDTO;
+import com.br.fasipe.fisioclin.DTOs.AtendimentoSimplesDTO;
 import com.br.fasipe.fisioclin.Repositories.AtendiFisioRepository;
 import com.br.fasipe.fisioclin.Repositories.PacienteRepository;
 import com.br.fasipe.fisioclin.Repositories.ProcedimentoRepository;
+import com.br.fasipe.fisioclin.Repositories.ProfissionalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,9 @@ public class AtendiFisioService {
     
     @Autowired
     private ProcedimentoRepository procedimentoRepository;
+    
+    @Autowired
+    private ProfissionalRepository profissionalRepository;
     
     @Transactional(readOnly = true)
     public List<AtendiFisio> listarTodos() {
@@ -94,6 +99,62 @@ public class AtendiFisioService {
         return atendiFisioRepository.save(atendimento);
     }
     
+    // Limite de caracteres para o campo DESCRATENDI no banco
+    private static final int MAX_DESCR_LENGTH = 250;
+    
+    /**
+     * Cria atendimento de forma simples (sem SOAP)
+     */
+    @Transactional
+    public AtendiFisio criarSimples(AtendimentoSimplesDTO dto) {
+        // Validações
+        if (dto.getIdPaciente() == null) {
+            throw new IllegalArgumentException("ID do paciente é obrigatório");
+        }
+        
+        if (dto.getIdProfissio() == null) {
+            throw new IllegalArgumentException("ID do profissional é obrigatório");
+        }
+        
+        if (dto.getCodProced() == null || dto.getCodProced().trim().isEmpty()) {
+            throw new IllegalArgumentException("Código do procedimento é obrigatório");
+        }
+        
+        if (dto.getDataAtendimento() == null) {
+            throw new IllegalArgumentException("Data do atendimento é obrigatória");
+        }
+        
+        // Verificar se paciente está ativo
+        if (!pacienteRepository.isPacienteAtivo(dto.getIdPaciente())) {
+            throw new IllegalStateException("Paciente inativo não pode ter atendimentos");
+        }
+        
+        // Verificar se profissional existe
+        if (!profissionalRepository.existsById(dto.getIdProfissio())) {
+            throw new IllegalArgumentException("Profissional não encontrado com ID: " + dto.getIdProfissio());
+        }
+        
+        // Buscar procedimento por código
+        Procedimento procedimento = procedimentoRepository.findByCodProced(dto.getCodProced())
+            .orElseThrow(() -> new IllegalArgumentException("Procedimento não encontrado com código: " + dto.getCodProced()));
+        
+        // Criar atendimento
+        AtendiFisio atendimento = new AtendiFisio();
+        atendimento.setIdPaciente(dto.getIdPaciente());
+        atendimento.setIdProfissio(dto.getIdProfissio());
+        atendimento.setIdProced(procedimento.getIdProced());
+        atendimento.setDataAtendi(dto.getDataAtendimento());
+        
+        // Truncar descrição se necessário
+        String descricao = dto.getDescricao();
+        if (descricao != null && descricao.length() > MAX_DESCR_LENGTH) {
+            descricao = descricao.substring(0, MAX_DESCR_LENGTH - 3) + "...";
+        }
+        atendimento.setDescrAtendi(descricao);
+        
+        return atendiFisioRepository.save(atendimento);
+    }
+    
     @Transactional
     public AtendiFisio criarComSOAP(AtendimentoSOAPDTO dto) {
         // Validações
@@ -118,6 +179,11 @@ public class AtendiFisioService {
             throw new IllegalStateException("Paciente inativo não pode ter atendimentos");
         }
         
+        // Verificar se profissional existe
+        if (!profissionalRepository.existsById(dto.getIdProfissio())) {
+            throw new IllegalArgumentException("Profissional não encontrado com ID: " + dto.getIdProfissio());
+        }
+        
         // Buscar procedimento por código
         Procedimento procedimento = procedimentoRepository.findByCodProced(dto.getCodProced())
             .orElseThrow(() -> new IllegalArgumentException("Procedimento não encontrado com código: " + dto.getCodProced()));
@@ -129,24 +195,75 @@ public class AtendiFisioService {
         atendimento.setIdProced(procedimento.getIdProced());
         atendimento.setDataAtendi(dto.getDataAtendimento());
         
-        // Concatenar SOAP em descrAtendi
-        StringBuilder descricao = new StringBuilder();
-        if (dto.getSubjetivo() != null && !dto.getSubjetivo().trim().isEmpty()) {
-            descricao.append("S: ").append(dto.getSubjetivo()).append("\n");
-        }
-        if (dto.getObjetivo() != null && !dto.getObjetivo().trim().isEmpty()) {
-            descricao.append("O: ").append(dto.getObjetivo()).append("\n");
-        }
-        if (dto.getAvaliacao() != null && !dto.getAvaliacao().trim().isEmpty()) {
-            descricao.append("A: ").append(dto.getAvaliacao()).append("\n");
-        }
-        if (dto.getPlano() != null && !dto.getPlano().trim().isEmpty()) {
-            descricao.append("P: ").append(dto.getPlano());
-        }
-        
-        atendimento.setDescrAtendi(descricao.toString());
+        // Montar descrição SOAP com limite de caracteres
+        String descricao = montarDescricaoSOAP(dto);
+        atendimento.setDescrAtendi(descricao);
         
         return atendiFisioRepository.save(atendimento);
+    }
+    
+    /**
+     * Monta a descrição SOAP respeitando o limite de 250 caracteres do banco.
+     * Distribui o espaço proporcionalmente entre as seções preenchidas.
+     */
+    private String montarDescricaoSOAP(AtendimentoSOAPDTO dto) {
+        String s = dto.getSubjetivo() != null ? dto.getSubjetivo().trim() : "";
+        String o = dto.getObjetivo() != null ? dto.getObjetivo().trim() : "";
+        String a = dto.getAvaliacao() != null ? dto.getAvaliacao().trim() : "";
+        String p = dto.getPlano() != null ? dto.getPlano().trim() : "";
+        
+        // Contar seções preenchidas
+        int secoes = 0;
+        if (!s.isEmpty()) secoes++;
+        if (!o.isEmpty()) secoes++;
+        if (!a.isEmpty()) secoes++;
+        if (!p.isEmpty()) secoes++;
+        
+        if (secoes == 0) return "";
+        
+        // Overhead: "S: " + "\n" = ~4 chars por seção
+        int overheadPorSecao = 4;
+        int overheadTotal = secoes * overheadPorSecao;
+        int espacoDisponivel = MAX_DESCR_LENGTH - overheadTotal;
+        
+        // Calcular espaço por seção (distribuição proporcional)
+        int espacoPorSecao = espacoDisponivel / secoes;
+        
+        StringBuilder descricao = new StringBuilder();
+        
+        if (!s.isEmpty()) {
+            descricao.append("S: ").append(truncar(s, espacoPorSecao)).append("\n");
+        }
+        if (!o.isEmpty()) {
+            descricao.append("O: ").append(truncar(o, espacoPorSecao)).append("\n");
+        }
+        if (!a.isEmpty()) {
+            descricao.append("A: ").append(truncar(a, espacoPorSecao)).append("\n");
+        }
+        if (!p.isEmpty()) {
+            descricao.append("P: ").append(truncar(p, espacoPorSecao));
+        }
+        
+        // Garantir que não exceda o limite
+        String resultado = descricao.toString();
+        if (resultado.length() > MAX_DESCR_LENGTH) {
+            resultado = resultado.substring(0, MAX_DESCR_LENGTH - 3) + "...";
+        }
+        
+        return resultado;
+    }
+    
+    /**
+     * Trunca uma string para o tamanho máximo especificado.
+     */
+    private String truncar(String texto, int maxLength) {
+        if (texto == null || texto.length() <= maxLength) {
+            return texto;
+        }
+        if (maxLength <= 3) {
+            return texto.substring(0, maxLength);
+        }
+        return texto.substring(0, maxLength - 3) + "...";
     }
     
     @Transactional

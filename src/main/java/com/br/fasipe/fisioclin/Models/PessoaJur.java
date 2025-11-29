@@ -34,6 +34,6 @@ public class PessoaJur {
     @Column(name = "DATACRIACAO", nullable = false)
     private LocalDateTime dataCriacao;
     
-    @Column(name = "IDDOCUMENTO", nullable = false, unique = true)
+    @Column(name = "ID_DOCUMENTO")
     private BigInteger idDocumento;
 }
