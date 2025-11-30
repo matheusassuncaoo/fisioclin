@@ -52,6 +52,9 @@ class FisioApp {
             this.carregarProcedimentosFisioterapia()
         ]);
         
+        // Configurar busca automática de nome do profissional
+        this.configurarBuscaProfissional();
+        
         // Atualizar ícones do Feather
         feather.replace();
         
@@ -104,6 +107,7 @@ class FisioApp {
             inputDataAtend: document.getElementById('inputDataAtend'),
             selectProcedimento: document.getElementById('selectProcedimento'),
             inputProfissional: document.getElementById('inputProfissional'),
+            nomeProfissionalHint: document.getElementById('nomeProfissionalHint'),
             inputDescricao: document.getElementById('inputDescricao'),
             charCount: document.getElementById('charCount'),
             btnLimparForm: document.getElementById('btnLimparForm'),
@@ -465,6 +469,74 @@ class FisioApp {
         });
     }
 
+    // ==================== PROFISSIONAIS ====================
+
+    /**
+     * Configura busca automática do nome do profissional quando o ID é digitado
+     */
+    configurarBuscaProfissional() {
+        const input = this.elements.inputProfissional;
+        const hint = this.elements.nomeProfissionalHint;
+        
+        if (!input) return;
+        
+        // Cache de nomes de profissionais
+        this.profissionaisCache = this.profissionaisCache || {};
+        
+        // Buscar nome quando o usuário digitar o ID
+        let buscaTimeout;
+        input.addEventListener('input', (e) => {
+            const idProfissio = e.target.value.trim();
+            
+            // Limpar hint anterior
+            if (hint) {
+                hint.style.display = 'none';
+                hint.textContent = '';
+            }
+            
+            // Limpar timeout anterior
+            clearTimeout(buscaTimeout);
+            
+            // Se tiver ID válido, buscar nome após 500ms de inatividade
+            if (idProfissio && !isNaN(idProfissio) && parseInt(idProfissio) > 0) {
+                buscaTimeout = setTimeout(async () => {
+                    try {
+                        // Verificar cache primeiro
+                        if (this.profissionaisCache[idProfissio]) {
+                            if (hint) {
+                                hint.textContent = `✓ ${this.profissionaisCache[idProfissio]}`;
+                                hint.style.display = 'block';
+                            }
+                            return;
+                        }
+                        
+                        // Buscar nome via API
+                        const nome = await api.buscarNomeProfissional(parseInt(idProfissio));
+                        if (nome) {
+                            this.profissionaisCache[idProfissio] = nome;
+                            if (hint) {
+                                hint.textContent = `✓ ${nome}`;
+                                hint.style.display = 'block';
+                            }
+                        }
+                    } catch (error) {
+                        // Se não encontrar, não mostra nada (silencioso)
+                        console.log('Profissional não encontrado ou erro ao buscar nome');
+                    }
+                }, 500);
+            }
+        });
+    }
+    
+    // Buscar nome do profissional (com cache)
+    getNomeProfissional(idProfissio) {
+        if (!idProfissio) return '--';
+        if (this.profissionaisCache && this.profissionaisCache[idProfissio]) {
+            return this.profissionaisCache[idProfissio];
+        }
+        return `Profissional #${idProfissio}`;
+    }
+
     // ==================== BUSCA E FILTROS ====================
 
     handleBusca(termo) {
@@ -527,7 +599,7 @@ class FisioApp {
         // Validações
         const data = this.elements.inputDataAtend.value;
         const procedimento = this.elements.selectProcedimento.value;
-        const profissional = this.elements.inputProfissional.value;
+        const profissional = this.elements.inputProfissional?.value;
         const descricao = this.elements.inputDescricao?.value.trim() || '';
         
         if (!data || !procedimento || !profissional) {
@@ -604,16 +676,24 @@ class FisioApp {
             return;
         }
         
-        container.innerHTML = atendimentos.map((atd, index) => `
-            <div class="timeline-item" data-index="${index}" onclick="app.abrirModalDetalhes(${index})">
-                <div class="timeline-date">${this.formatarData(atd.dataAtendimento || atd.dataAtendi)}</div>
-                <div class="timeline-content">
-                    <h4>${atd.procedimento || atd.descrProc || 'Evolução'}</h4>
-                    <p>${atd.descricao || atd.descrAtendi || 'Sem descrição registrada'}</p>
-                    <span class="ver-mais">Clique para ver mais →</span>
+        container.innerHTML = atendimentos.map((atd, index) => {
+            // Decodificar HTML entities para exibição correta
+            const descricao = this.sanitizeForDisplay(atd.descricao || atd.descrAtendi || 'Sem descrição registrada');
+            const procedimento = this.sanitizeForDisplay(atd.procedimento || atd.descrProc || atd.codProcedimento || 'Evolução');
+            const profissional = this.sanitizeForDisplay(atd.nomeProfissional || this.getNomeProfissional(atd.idProfissio));
+            
+            return `
+                <div class="timeline-item" data-index="${index}" onclick="app.abrirModalDetalhes(${index})">
+                    <div class="timeline-date">${this.formatarData(atd.dataAtendimento || atd.dataAtendi)}</div>
+                    <div class="timeline-content">
+                        <h4>${procedimento}</h4>
+                        <p class="timeline-descricao">${descricao}</p>
+                        <small class="timeline-profissional">👤 ${profissional}</small>
+                        <span class="ver-mais">Clique para ver mais →</span>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
         
         feather.replace();
     }
@@ -624,11 +704,19 @@ class FisioApp {
         const atd = this.atendimentosCache?.[index];
         if (!atd) return;
         
-        // Preencher dados
+        // Preencher dados (decodificando HTML entities)
         this.elements.modalData.textContent = this.formatarData(atd.dataAtendimento || atd.dataAtendi);
-        this.elements.modalProcedimento.textContent = atd.procedimento || atd.descrProc || atd.codProced || '--';
-        this.elements.modalProfissional.textContent = atd.idProfissio || '--';
-        this.elements.modalDescricao.textContent = atd.descricao || atd.descrAtendi || 'Sem descrição registrada';
+        
+        // Procedimento: mostrar descrição ou código
+        const procedimento = this.sanitizeForDisplay(atd.procedimento || atd.descrProc || atd.codProcedimento || '--');
+        this.elements.modalProcedimento.textContent = procedimento;
+        
+        // Profissional: mostrar nome (não só o ID)
+        const nomeProfissional = this.sanitizeForDisplay(atd.nomeProfissional || this.getNomeProfissional(atd.idProfissio));
+        this.elements.modalProfissional.textContent = nomeProfissional;
+        
+        // Descrição
+        this.elements.modalDescricao.textContent = this.sanitizeForDisplay(atd.descricao || atd.descrAtendi || 'Sem descrição registrada');
         
         // Mostrar modal
         this.elements.modalDetalhes?.classList.remove('hidden');
@@ -649,43 +737,76 @@ class FisioApp {
                     <i data-feather="activity"></i>
                     <h3>Sem exercícios</h3>
                     <p>Nenhum exercício realizado registrado</p>
+                    <p class="text-muted">O fluxo completo é: Anamnese → Prescrição → Realização</p>
                 </div>
             `;
             feather.replace();
             return;
         }
         
-        container.innerHTML = exercicios.map(ex => `
-            <div class="exercicio-item">
-                <div class="exercicio-icon">
-                    <i data-feather="check-circle"></i>
-                </div>
-                <div class="exercicio-info">
-                    <div class="exercicio-nome">${ex.nomeExercicio || ex.descrExerc || 'Exercício'}</div>
-                    <div class="exercicio-meta">
-                        ${ex.series ? ex.series + ' séries' : ''}
-                        ${ex.repeticoes ? ' x ' + ex.repeticoes + ' repetições' : ''}
-                        ${ex.dataRealizado ? ' - ' + this.formatarData(ex.dataRealizado) : ''}
+        container.innerHTML = exercicios.map(ex => {
+            // Decodificar HTML entities
+            const nomeExerc = this.sanitizeForDisplay(ex.nomeExercicio || ex.descrExerc || 'Exercício');
+            const orientacao = this.sanitizeForDisplay(ex.orientacao || '');
+            
+            return `
+                <div class="exercicio-item">
+                    <div class="exercicio-icon">
+                        <i data-feather="check-circle"></i>
+                    </div>
+                    <div class="exercicio-info">
+                        <div class="exercicio-nome">${nomeExerc}</div>
+                        <div class="exercicio-meta">
+                            ${ex.series ? ex.series + ' séries' : ''}
+                            ${ex.repeticoes ? ' x ' + ex.repeticoes + ' repetições' : ''}
+                            ${ex.ultimaRealizacao ? ' - ' + this.formatarData(ex.ultimaRealizacao) : ''}
+                        </div>
+                        ${orientacao ? `<div class="exercicio-orientacao">${orientacao}</div>` : ''}
                     </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
         
         feather.replace();
     }
 
-    atualizarDashboard() {
+    async atualizarDashboard() {
         const { pacientes } = this.state;
         
-        // Total de pacientes ativos
+        // Total de pacientes ativos (fallback local)
         const ativos = pacientes.filter(p => p.statusPac).length;
         this.elements.totalPacientesAtivos.textContent = ativos;
         
-        // Atendimentos hoje (placeholder)
-        this.elements.atendimentosHoje.textContent = '--';
-        
-        // Anamneses pendentes (placeholder)
-        this.elements.anamnesesPendentes.textContent = '--';
+        // Buscar dados do dashboard via API
+        try {
+            const dashboard = await api.obterDashboard();
+            
+            if (dashboard) {
+                // Total pacientes ativos (prioriza API)
+                if (dashboard.totalPacientesAtivos !== undefined) {
+                    this.elements.totalPacientesAtivos.textContent = dashboard.totalPacientesAtivos;
+                }
+                
+                // Atendimentos hoje
+                if (dashboard.atendimentosHoje !== undefined) {
+                    this.elements.atendimentosHoje.textContent = dashboard.atendimentosHoje;
+                } else {
+                    this.elements.atendimentosHoje.textContent = '0';
+                }
+                
+                // Anamneses pendentes
+                if (dashboard.anamnesesPendentes !== undefined) {
+                    this.elements.anamnesesPendentes.textContent = dashboard.anamnesesPendentes;
+                } else {
+                    this.elements.anamnesesPendentes.textContent = '0';
+                }
+            }
+        } catch (error) {
+            console.warn('Erro ao carregar dashboard:', error);
+            // Manter contagem local de pacientes, zerar os outros
+            this.elements.atendimentosHoje.textContent = '0';
+            this.elements.anamnesesPendentes.textContent = '0';
+        }
     }
 
     // ==================== UTILITÁRIOS ====================
@@ -700,10 +821,31 @@ class FisioApp {
     formatarData(data) {
         if (!data) return '--';
         try {
-            return new Date(data).toLocaleDateString('pt-BR');
+            // Criar data considerando timezone local
+            const date = new Date(data + 'T00:00:00');
+            return date.toLocaleDateString('pt-BR');
         } catch {
             return data;
         }
+    }
+
+    /**
+     * Decodifica HTML entities para texto normal
+     * Resolve problemas como &eacute; -> é, &amp; -> &
+     */
+    decodeHtmlEntities(text) {
+        if (!text) return text;
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = text;
+        return textarea.value;
+    }
+
+    /**
+     * Sanitiza texto para exibição segura (decodifica HTML entities)
+     */
+    sanitizeForDisplay(text) {
+        if (!text) return text;
+        return this.decodeHtmlEntities(text);
     }
 
     showLoading(show) {

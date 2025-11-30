@@ -45,4 +45,23 @@ public interface ExercRealizadoRepository extends JpaRepository<ExercRealizado, 
         @Param("idPaciente") Integer idPaciente,
         @Param("limit") Integer limit
     );
+    
+    // ===== QUERIES COM DETALHES DO EXERCÍCIO =====
+    
+    // Buscar exercícios realizados com detalhes completos (para exibição)
+    @Query("SELECT er.idExercRealizado, e.descrExerc, ep.qtdExerc, ep.orientacao, er.dataHora, er.observacao " +
+           "FROM ExercRealizado er " +
+           "JOIN ExercPresc ep ON er.idExercPresc = ep.idExercPresc " +
+           "JOIN Exercicio e ON ep.idExercicio = e.idExercicio " +
+           "JOIN Anamnese a ON ep.idAnamnese = a.idAnamnese " +
+           "WHERE a.idPaciente = :idPaciente " +
+           "ORDER BY er.dataHora DESC")
+    List<Object[]> findExerciciosComDetalhesByPaciente(@Param("idPaciente") Integer idPaciente);
+    
+    // Contar exercícios realizados por paciente
+    @Query("SELECT COUNT(er) FROM ExercRealizado er " +
+           "JOIN ExercPresc ep ON er.idExercPresc = ep.idExercPresc " +
+           "JOIN Anamnese a ON ep.idAnamnese = a.idAnamnese " +
+           "WHERE a.idPaciente = :idPaciente")
+    Long countByPaciente(@Param("idPaciente") Integer idPaciente);
 }

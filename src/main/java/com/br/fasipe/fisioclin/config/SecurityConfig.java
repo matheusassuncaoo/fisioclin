@@ -108,7 +108,12 @@ public class SecurityConfig {
                 .cacheControl(cache -> {})
                 // Content Security Policy básico
                 .contentSecurityPolicy(csp -> 
-                    csp.policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;"))
+                    csp.policyDirectives("default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net https://unpkg.com; " +
+                        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; " +
+                        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+                        "img-src 'self' data:; " +
+                        "font-src 'self' data: https://fonts.gstatic.com; " +
+                        "connect-src 'self' https://cdn.jsdelivr.net https://unpkg.com;"))
             )
             
             // Sessão stateless para API REST

@@ -375,6 +375,82 @@ class ApiManager {
     async listarEspecialidades() {
         return this.request('/procedimentos/especialidades');
     }
+
+    // ===== DASHBOARD =====
+
+    /**
+     * Obtém dados do dashboard (contadores principais)
+     */
+    async obterDashboard() {
+        return this.request('/dashboard');
+    }
+
+    /**
+     * Obtém dados detalhados do dashboard
+     */
+    async obterDashboardDetalhado() {
+        return this.request('/dashboard/detalhado');
+    }
+
+    /**
+     * Conta atendimentos de hoje
+     */
+    async contarAtendimentosHoje() {
+        return this.request('/dashboard/atendimentos-hoje');
+    }
+
+    /**
+     * Conta anamneses pendentes
+     */
+    async contarAnamnesesPendentes() {
+        return this.request('/dashboard/anamneses-pendentes');
+    }
+
+    /**
+     * Conta anamneses pendentes de um paciente específico
+     */
+    async contarAnamnesesPendentesPorPaciente(idPaciente) {
+        return this.request(`/dashboard/anamneses-pendentes/${idPaciente}`);
+    }
+
+    // ===== ANAMNESES =====
+
+    /**
+     * Busca anamneses do paciente
+     */
+    async buscarAnamnesesPaciente(idPaciente) {
+        return this.request(`/anamneses/paciente/${idPaciente}`);
+    }
+
+    // ===== PROFISSIONAIS =====
+
+    /**
+     * Lista todos os profissionais ativos
+     */
+    async listarProfissionais() {
+        return this.request('/profissionais');
+    }
+
+    /**
+     * Lista profissionais de fisioterapia (CREFITO)
+     */
+    async listarProfissionaisFisioterapia() {
+        return this.request('/profissionais/fisioterapia');
+    }
+
+    /**
+     * Busca profissional por ID
+     */
+    async buscarProfissional(id) {
+        return this.request(`/profissionais/${id}`);
+    }
+
+    /**
+     * Busca nome do profissional
+     */
+    async buscarNomeProfissional(id) {
+        return this.request(`/profissionais/${id}/nome`);
+    }
 }
 
 // Criar instância global do ApiManager

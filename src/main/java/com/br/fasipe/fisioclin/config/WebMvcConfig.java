@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
@@ -28,6 +29,19 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 "/api-docs/**",
                 "/swagger-ui/**"
             );
+    }
+    
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // Configura o handler para servir arquivos estáticos do frontend
+        // O Spring Boot já serve arquivos de classpath:/static/ na raiz por padrão,
+        // mas explicitamos aqui para garantir
+        registry.addResourceHandler("/frontend/**")
+            .addResourceLocations("classpath:/static/frontend/");
+        
+        // Configura o handler para servir Assets (CSS, JS, etc) acessíveis via /Assets/
+        registry.addResourceHandler("/Assets/**")
+            .addResourceLocations("classpath:/static/frontend/Assets/");
     }
     
     /**

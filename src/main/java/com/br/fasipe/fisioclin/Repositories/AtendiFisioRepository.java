@@ -42,4 +42,35 @@ public interface AtendiFisioRepository extends JpaRepository<AtendiFisio, Intege
     
     // Buscar atendimentos por procedimento
     List<AtendiFisio> findByIdProced(Integer idProced);
+    
+    // ===== NOVOS MÉTODOS PARA DASHBOARD =====
+    
+    // Buscar atendimentos de hoje
+    @Query("SELECT a FROM AtendiFisio a WHERE a.dataAtendi = :data ORDER BY a.idAtendiFisio DESC")
+    List<AtendiFisio> findByData(@Param("data") LocalDate data);
+    
+    // Contar atendimentos de hoje
+    @Query("SELECT COUNT(a) FROM AtendiFisio a WHERE a.dataAtendi = :data")
+    Long countByData(@Param("data") LocalDate data);
+    
+    // Contar atendimentos de hoje por profissional
+    @Query("SELECT COUNT(a) FROM AtendiFisio a WHERE a.dataAtendi = :data AND a.idProfissio = :idProfissio")
+    Long countByDataAndProfissional(@Param("data") LocalDate data, @Param("idProfissio") Integer idProfissio);
+    
+    // Buscar atendimentos de hoje por profissional de fisioterapia (via conselho)
+    @Query("SELECT a FROM AtendiFisio a " +
+           "JOIN Profissional p ON a.idProfissio = p.idProfissio " +
+           "JOIN ConseProfi c ON p.idConseProfi = c.idConseProfi " +
+           "WHERE a.dataAtendi = :data " +
+           "AND (UPPER(c.siglaCons) = 'CREFITO' OR UPPER(c.descrCons) LIKE '%FISIOTER%') " +
+           "ORDER BY a.idAtendiFisio DESC")
+    List<AtendiFisio> findAtendimentosHojeFisioterapia(@Param("data") LocalDate data);
+    
+    // Contar atendimentos de fisioterapia hoje
+    @Query("SELECT COUNT(a) FROM AtendiFisio a " +
+           "JOIN Profissional p ON a.idProfissio = p.idProfissio " +
+           "JOIN ConseProfi c ON p.idConseProfi = c.idConseProfi " +
+           "WHERE a.dataAtendi = :data " +
+           "AND (UPPER(c.siglaCons) = 'CREFITO' OR UPPER(c.descrCons) LIKE '%FISIOTER%')")
+    Long countAtendimentosHojeFisioterapia(@Param("data") LocalDate data);
 }

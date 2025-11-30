@@ -26,9 +26,12 @@ public interface PacienteRepository extends JpaRepository<Paciente, Integer> {
     // Listar por status
     List<Paciente> findByStatusPac(Integer statusPac);
     
-    // Contar pacientes ativos
+    // Contar pacientes ativos (statusPac como Integer)
     @Query("SELECT COUNT(p) FROM Paciente p WHERE p.statusPac = 1")
     Long countPacientesAtivos();
+    
+    // Contar por status (usando Integer: 1=ativo, 0=inativo)
+    Long countByStatusPac(Integer statusPac);
     
     // Verificar se paciente está ativo
     @Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END FROM Paciente p WHERE p.idPaciente = :id AND p.statusPac = 1")

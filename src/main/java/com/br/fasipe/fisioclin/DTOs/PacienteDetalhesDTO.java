@@ -72,10 +72,13 @@ public class PacienteDetalhesDTO {
     @AllArgsConstructor
     public static class AtendimentoResumoDTO {
         private Integer idAtendiFisio;
+        private Integer idProfissio;
+        private Integer idProced;
         private LocalDate dataAtendimento;
         private String descricao;
-        private String nomeProfissional; // Se tiver relacionamento
-        private String procedimento; // Se tiver relacionamento
+        private String nomeProfissional;
+        private String procedimento;
+        private String codProcedimento;
     }
     
     @Data

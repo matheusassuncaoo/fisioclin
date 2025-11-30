@@ -41,6 +41,12 @@ public class PacienteDetalhesService {
     @Autowired
     private AnamneseRepository anamneseRepository;
     
+    @Autowired
+    private ProcedimentoRepository procedimentoRepository;
+    
+    @Autowired
+    private PessoaFisRepository pessoaFisRepository;
+    
     /**
      * Busca todas as informações consolidadas do paciente
      * de forma otimizada para exibição rápida
@@ -106,15 +112,24 @@ public class PacienteDetalhesService {
         if (primeiroAtend != null) {
             stats.setPrimeiroAtendimento(primeiroAtend.getDataAtendi());
             
-            // Calcular dias em tratamento
-            LocalDate hoje = LocalDate.now();
-            long dias = ChronoUnit.DAYS.between(primeiroAtend.getDataAtendi(), hoje);
+            // Calcular dias em tratamento (do primeiro ao último atendimento)
+            LocalDate dataFim = ultimoAtend != null ? ultimoAtend.getDataAtendi() : LocalDate.now();
+            long dias = ChronoUnit.DAYS.between(primeiroAtend.getDataAtendi(), dataFim);
+            
+            // Se for o mesmo dia, considerar 1 dia
+            if (dias == 0) {
+                dias = 1;
+            }
+            
             stats.setDiasEmTratamento((int) dias);
             
-            // Calcular frequência semanal
+            // Calcular frequência semanal (atendimentos por semana)
             if (dias > 0 && stats.getTotalAtendimentos() > 0) {
-                double semanas = dias / 7.0;
-                stats.setFrequenciaSemanal(stats.getTotalAtendimentos() / semanas);
+                // Calcular semanas (mínimo 1 semana se tiver atendimentos)
+                double semanas = Math.max(1.0, dias / 7.0);
+                // Frequência = total de atendimentos / número de semanas
+                double frequencia = stats.getTotalAtendimentos() / semanas;
+                stats.setFrequenciaSemanal(Math.round(frequencia * 10.0) / 10.0); // Arredondar para 1 casa decimal
             } else {
                 stats.setFrequenciaSemanal(0.0);
             }
@@ -161,9 +176,34 @@ public class PacienteDetalhesService {
             .map(atd -> {
                 AtendimentoResumoDTO resumo = new AtendimentoResumoDTO();
                 resumo.setIdAtendiFisio(atd.getIdAtendiFisio());
+                resumo.setIdProfissio(atd.getIdProfissio());
+                resumo.setIdProced(atd.getIdProced());
                 resumo.setDataAtendimento(atd.getDataAtendi());
                 resumo.setDescricao(atd.getDescrAtendi());
-                // TODO: Buscar nome do profissional e procedimento se necessário
+                
+                // Buscar nome do profissional
+                if (atd.getIdProfissio() != null) {
+                    try {
+                        pessoaFisRepository.findNomeProfissional(atd.getIdProfissio())
+                            .ifPresent(resumo::setNomeProfissional);
+                    } catch (Exception e) {
+                        resumo.setNomeProfissional("Profissional #" + atd.getIdProfissio());
+                    }
+                }
+                
+                // Buscar procedimento
+                if (atd.getIdProced() != null) {
+                    try {
+                        procedimentoRepository.findById(atd.getIdProced())
+                            .ifPresent(proc -> {
+                                resumo.setProcedimento(proc.getDescrProc());
+                                resumo.setCodProcedimento(proc.getCodProced());
+                            });
+                    } catch (Exception e) {
+                        resumo.setProcedimento("Procedimento #" + atd.getIdProced());
+                    }
+                }
+                
                 return resumo;
             })
             .collect(Collectors.toList());
@@ -173,13 +213,34 @@ public class PacienteDetalhesService {
      * Busca exercícios prescritos ativos (com realizações nos últimos 30 dias)
      */
     private List<ExercicioPrescritoDTO> buscarExerciciosAtivos(Integer idPaciente) {
-        // Buscar exercícios realizados recentemente
-        // List<ExercRealizado> exerciciosRealizados = exercRealizadoRepository.findByPaciente(idPaciente);
+        List<ExercicioPrescritoDTO> exerciciosDTO = new ArrayList<>();
         
-        // Agrupar por prescrição e contar
-        // Simplificado - em produção, usar GROUP BY na query
-        // TODO: Implementar quando tiver relacionamento completo com ExercPresc
-        return new ArrayList<>();
+        try {
+            // Buscar exercícios realizados com detalhes
+            List<Object[]> resultados = exercRealizadoRepository.findExerciciosComDetalhesByPaciente(idPaciente);
+            
+            for (Object[] row : resultados) {
+                ExercicioPrescritoDTO dto = new ExercicioPrescritoDTO();
+                
+                // idExercRealizado, descrExerc, qtdExerc, orientacao, dataHora, observacao
+                dto.setIdExercPresc((Integer) row[0]);
+                dto.setNomeExercicio((String) row[1]);
+                dto.setSeries((Integer) row[2]); // qtdExerc como séries
+                dto.setOrientacao((String) row[3]);
+                
+                if (row[4] != null) {
+                    java.time.LocalDateTime dataHora = (java.time.LocalDateTime) row[4];
+                    dto.setUltimaRealizacao(dataHora.toLocalDate());
+                }
+                
+                exerciciosDTO.add(dto);
+            }
+        } catch (Exception e) {
+            // Se der erro na query (tabela não existe ou relacionamento quebrado)
+            // Retorna lista vazia
+        }
+        
+        return exerciciosDTO;
     }
     
     /**

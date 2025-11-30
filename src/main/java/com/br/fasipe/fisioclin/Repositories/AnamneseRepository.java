@@ -32,4 +32,39 @@ public interface AnamneseRepository extends JpaRepository<Anamnese, Integer> {
     // Anamneses funcionais ativas
     @Query("SELECT a FROM Anamnese a WHERE a.statusFunc = 1 ORDER BY a.dataAnam DESC")
     List<Anamnese> findAnamnesesFuncionais();
+    
+    // ===== NOVOS MÉTODOS PARA ANAMNESES PENDENTES =====
+    
+    // Contar anamneses pendentes (não aprovadas e status funcional = 0)
+    @Query("SELECT COUNT(a) FROM Anamnese a WHERE a.statusAnm != 'APROVADO' AND a.statusFunc = 0")
+    Long countAnamnesesPendentes();
+    
+    // Contar anamneses pendentes por paciente
+    @Query("SELECT COUNT(a) FROM Anamnese a WHERE a.idPaciente = :idPaciente AND a.statusAnm != 'APROVADO'")
+    Long countAnamnesesPendentesByPaciente(@Param("idPaciente") Integer idPaciente);
+    
+    // Buscar anamneses pendentes (aguardando aprovação)
+    @Query("SELECT a FROM Anamnese a WHERE a.statusAnm != 'APROVADO' AND a.statusFunc = 0 ORDER BY a.dataAnam DESC")
+    List<Anamnese> findAnamnesesPendentes();
+    
+    // Buscar anamneses pendentes por paciente
+    @Query("SELECT a FROM Anamnese a WHERE a.idPaciente = :idPaciente AND a.statusAnm != 'APROVADO' ORDER BY a.dataAnam DESC")
+    List<Anamnese> findAnamnesesPendentesByPaciente(@Param("idPaciente") Integer idPaciente);
+    
+    // Buscar anamneses pendentes de fisioterapia (via conselho do profissional)
+    @Query("SELECT a FROM Anamnese a " +
+           "JOIN Profissional p ON a.idProfissio = p.idProfissio " +
+           "JOIN ConseProfi c ON p.idConseProfi = c.idConseProfi " +
+           "WHERE a.statusAnm != 'APROVADO' " +
+           "AND (UPPER(c.siglaCons) = 'CREFITO' OR UPPER(c.descrCons) LIKE '%FISIOTER%') " +
+           "ORDER BY a.dataAnam DESC")
+    List<Anamnese> findAnamnesesPendentesFisioterapia();
+    
+    // Contar anamneses pendentes de fisioterapia
+    @Query("SELECT COUNT(a) FROM Anamnese a " +
+           "JOIN Profissional p ON a.idProfissio = p.idProfissio " +
+           "JOIN ConseProfi c ON p.idConseProfi = c.idConseProfi " +
+           "WHERE a.statusAnm != 'APROVADO' " +
+           "AND (UPPER(c.siglaCons) = 'CREFITO' OR UPPER(c.descrCons) LIKE '%FISIOTER%')")
+    Long countAnamnesesPendentesFisioterapia();
 }
